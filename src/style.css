@@ -1,0 +1,47 @@
+:root {
+  --bg: #f2f4f8;
+  --surface: #ffffff;
+  --surface-2: #eaedf3;
+  --border: #dbe0e9;
+  --text: #1a1d27;
+  --text-2: #5b6373;
+  --accent: #3d4fc4;
+  --hp-ok: #2f9e5b;
+  --hp-mid: #d97706;
+  --hp-low: #a8323f;
+  --shadow: 0 1px 2px rgba(20, 23, 40, 0.06), 0 8px 24px -12px rgba(20, 23, 40, 0.18);
+  --cover: #c1272d;
+  --cover-shade: #8a1a1f;
+  --cover-trim: #f4c945;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12141b;
+    --surface: #1a1d27;
+    --surface-2: #212430;
+    --border: #2c303e;
+    --text: #edeef3;
+    --text-2: #9aa1b4;
+    --accent: #8b97f0;
+    --hp-ok: #3fb96e;
+    --hp-mid: #e0900f;
+    --hp-low: #c2570f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+    --cover: #9c2126;
+    --cover-shade: #611318;
+    --cover-trim: #e0b430;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  padding-block: 40px 60px;
+}
