@@ -14,11 +14,12 @@
   --cover-shade: #8a1a1f;
   --cover-trim: #f4c945;
 
-  /* taille d'une page du livre, s'adapte à la largeur d'écran.
-     largeur et hauteur sont volontairement découplées (pas de ratio fixe)
-     pour pouvoir élargir le livre sans changer sa hauteur. */
-  --page-w: clamp(400px, 60vw, 700px);
-  --page-h: calc(clamp(300px, 44vw, 520px) * 1.4);
+  /* Taille d'une page du livre. Écran large : deux pages côte à côte qui
+     tiennent dans la largeur, hauteur calée sur celle de l'écran. */
+  --page-w: min(700px, calc((100vw - 72px) / 2));
+  --page-h: clamp(560px, calc(100dvh - 80px), 780px);
+  /* hauteur de la page illustration quand les pages sont empilées */
+  --art-h: min(52vh, 460px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -49,5 +50,17 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  padding-block: 40px 60px;
+  padding-block: 16px;
+}
+
+/* Téléphone / tablette en portrait : une page pleine largeur, presque toute
+   la hauteur de l'écran (voir la media query de App.vue). */
+@media (max-width: 959px) {
+  :root {
+    --page-w: min(700px, calc(100vw - 24px));
+    --page-h: calc(100dvh - 24px);
+  }
+  body {
+    padding-block: 0;
+  }
 }

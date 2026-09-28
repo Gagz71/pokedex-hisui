@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import BookCover from './components/BookCover.vue'
 import PokemonArtCard from './components/PokemonArtCard.vue'
 import PokemonInfoCard from './components/PokemonInfoCard.vue'
@@ -82,7 +82,19 @@ const filteredEntries = computed(() => {
   )
 })
 
-const entriesPerPage = computed(() => Math.ceil(entries.value.length / 2))
+// Écran étroit (téléphone, tablette en portrait) : une seule page visible à
+// la fois dans la largeur, donc l'index tient en une seule liste. Le seuil
+// doit rester le même que la media query de fin de fichier.
+const NARROW_QUERY = '(max-width: 959px)'
+const narrowMedia = window.matchMedia(NARROW_QUERY)
+const isNarrow = ref(narrowMedia.matches)
+const onNarrowChange = (e: MediaQueryListEvent) => (isNarrow.value = e.matches)
+onMounted(() => narrowMedia.addEventListener('change', onNarrowChange))
+onUnmounted(() => narrowMedia.removeEventListener('change', onNarrowChange))
+
+const entriesPerPage = computed(() =>
+  isNarrow.value ? entries.value.length : Math.ceil(entries.value.length / 2),
+)
 const firstHalf = computed(() => filteredEntries.value.slice(0, entriesPerPage.value))
 const secondHalf = computed(() => filteredEntries.value.slice(entriesPerPage.value))
 
@@ -599,7 +611,7 @@ function goBack() {
 
 <template>
   <div class="scene">
-    <div class="book" :class="{ open: isOpen }">
+    <div class="book" :class="{ open: isOpen, 'has-pokemon': !!selectedName }">
       <div class="page page-left">
         <button class="close-tab" v-if="isOpen && !selectedName" @click="isOpen = false">
           ✕ Fermer le livre
@@ -701,7 +713,7 @@ function goBack() {
 .scene {
   display: flex;
   justify-content: center;
-  padding: 48px 20px;
+  padding: 24px 24px;
   perspective: 1800px;
   width: 100%;
 }
@@ -922,27 +934,46 @@ function goBack() {
   background: var(--surface);
 }
 
-/* Écran trop étroit pour montrer les deux pages côte à côte :
-   le livre s'ouvre vers le bas (page de droite sous la page de gauche)
-   plutôt que vers la droite. */
-@media (max-width: 720px) {
+/* Écran trop étroit pour montrer les deux pages côte à côte (téléphone,
+   tablette en portrait) : les pages s'empilent dans le flux normal, pleine
+   largeur. Sur l'index, la liste tient entière sur la page de gauche et la
+   page de droite est masquée ; sur une fiche, l'illustration est au-dessus
+   et la fiche en dessous. Même seuil que NARROW_QUERY. */
+@media (max-width: 959px) {
   .scene {
-    padding: 28px 14px;
+    padding: 12px;
   }
   .book.open {
     width: var(--page-w);
-    height: calc(var(--page-h) * 2 + 20px);
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .book.open .page,
+  .book.open .page-right-mask {
+    position: relative;
+    left: 0;
+  }
+  .page {
+    padding: 14px;
   }
   .page-right-mask {
     left: 0;
-    top: calc(var(--page-h) + 20px);
     width: var(--page-w);
-    height: 0;
-    transition: height 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
+    transition: none;
   }
   .book.open .page-right-mask {
+    width: var(--page-w);
     height: var(--page-h);
   }
+  .book.open:not(.has-pokemon) .page-right-mask {
+    display: none;
+  }
+  .book.has-pokemon .page-left {
+    height: var(--art-h);
+  }
+  .page-left,
   .page-right {
     border-radius: 6px;
     border-left: 1px solid var(--border);

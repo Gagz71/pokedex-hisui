@@ -529,20 +529,24 @@ const hoveredZoneName = ref<string | null>(null)
       </div>
     </div>
 
-    <div v-if="expandedZone" class="map-lightbox" @click="expandedZone = null">
-      <div
-        class="map-crop"
-        :style="{
-          '--crop-cx': expandedZone.cx + '%',
-          '--crop-cy': expandedZone.cy + '%',
-          '--crop-zoom': expandedZone.zoom,
-        }"
-      >
-        <img :src="MAP_SRC" alt="" />
-        <span class="map-crop-title">{{ expandedZone.name }}</span>
+    <!-- Hors du livre : sa perspective 3D empêcherait position: fixed de
+         couvrir tout l'écran -->
+    <Teleport to="body">
+      <div v-if="expandedZone" class="map-lightbox" @click="expandedZone = null">
+        <div
+          class="map-crop"
+          :style="{
+            '--crop-cx': expandedZone.cx + '%',
+            '--crop-cy': expandedZone.cy + '%',
+            '--crop-zoom': expandedZone.zoom,
+          }"
+        >
+          <img :src="MAP_SRC" alt="" />
+          <span class="map-crop-title">{{ expandedZone.name }}</span>
+        </div>
+        <button class="map-lightbox-close" @click="expandedZone = null">✕ Fermer</button>
       </div>
-      <button class="map-lightbox-close" @click="expandedZone = null">✕ Fermer</button>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -985,6 +989,7 @@ const hoveredZoneName = ref<string | null>(null)
   height: 64px;
 }
 .evo-next.many .evolution-text {
+  flex-shrink: 1;
   align-items: flex-start;
   text-align: left;
   min-width: 0;
@@ -1362,5 +1367,36 @@ button.evo-final-poke:hover {
   background: #fff;
   color: #1a1a1a;
   cursor: pointer;
+}
+
+/* Petits écrans : marges resserrées pour laisser la place au contenu */
+@media (max-width: 600px) {
+  .card-frame {
+    padding: 8px;
+    border-radius: 16px;
+  }
+  .inner {
+    padding: 10px;
+    gap: 8px;
+  }
+  .buttons {
+    gap: 6px;
+  }
+  .buttons button {
+    padding: 10px 2px;
+    font-size: 12.5px;
+  }
+  .window {
+    padding: 12px;
+  }
+  .dex-text {
+    font-size: 16px;
+  }
+  .evo-next.many {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .map-crop {
+    aspect-ratio: 4 / 3;
+  }
 }
 </style>
