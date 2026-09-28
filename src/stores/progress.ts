@@ -1,5 +1,6 @@
 import { reactive, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { HISUI_LOCATIONS } from '../data/hisuiLocations'
 
 // Progression de la partie, enregistrée sur l'appareil (localStorage).
 // Chaque entrée porte la date de sa dernière modification (updatedAt, en ms) :
@@ -11,6 +12,10 @@ export interface PokemonProgress {
   caught: boolean
   researchDone: boolean // niveau de recherche 10 atteint
   shiny: boolean // un chromatique capturé
+  // Le Pokémon capturé a évolué : on ne l'a plus sous cette forme, mais il
+  // reste « capturé » au Pokédex, comme dans le jeu. (Absent des données
+  // enregistrées avant l'ajout de cette option.)
+  evolved?: boolean
   updatedAt: number
 }
 
@@ -54,16 +59,31 @@ export type PokemonFlag = 'seen' | 'caught' | 'researchDone' | 'shiny'
 
 const STORAGE_KEY = 'pokedex-hisui-progress-v1'
 
-const EMPTY: Omit<PokemonProgress, 'updatedAt'> = {
+const EMPTY: Required<Omit<PokemonProgress, 'updatedAt'>> = {
   seen: false,
   caught: false,
   researchDone: false,
   shiny: false,
+  evolved: false,
 }
 
-// Un Baron est identifié par l'espèce, la zone et l'emplacement.
+// Un Baron fixe est identifié par l'espèce, la zone et l'emplacement.
 export function alphaKey(apiName: string, region: string, place: string): string {
   return `${apiName}|${region}|${place}`
+}
+
+// Baron hors emplacement fixe (invasion massive, distorsion, rencontre
+// aléatoire) : un seul suivi par espèce.
+const OTHER_ALPHA_SUFFIX = '|autre'
+export function otherAlphaKey(apiName: string): string {
+  return apiName + OTHER_ALPHA_SUFFIX
+}
+export function isOtherAlphaKey(key: string): boolean {
+  return key.endsWith(OTHER_ALPHA_SUFFIX)
+}
+
+export function hasFixedAlphas(apiName: string): boolean {
+  return (HISUI_LOCATIONS[apiName] ?? []).some((l) => l.alphas?.length)
 }
 
 // Fusion de deux progressions (cet appareil + celle du compte en ligne) :
@@ -122,8 +142,8 @@ export const useProgressStore = defineStore('progress', () => {
     { deep: true },
   )
 
-  function get(apiName: string): Omit<PokemonProgress, 'updatedAt'> {
-    return data.pokemon[apiName] ?? EMPTY
+  function get(apiName: string): Required<Omit<PokemonProgress, 'updatedAt'>> {
+    return { ...EMPTY, ...data.pokemon[apiName] }
   }
 
   // Les états s'enchaînent comme dans le jeu : capturé implique vu, recherche
@@ -137,10 +157,36 @@ export const useProgressStore = defineStore('progress', () => {
       if (flag === 'caught' || flag === 'researchDone' || flag === 'shiny') next.seen = true
       if (flag === 'researchDone') next.caught = true
     } else {
-      if (flag === 'seen') next.caught = next.researchDone = next.shiny = false
-      if (flag === 'caught') next.researchDone = false
+      if (flag === 'seen') next.caught = next.researchDone = next.shiny = next.evolved = false
+      if (flag === 'caught') next.researchDone = next.evolved = false
     }
     data.pokemon[apiName] = { ...next, updatedAt: Date.now() }
+  }
+
+  // Le Pokémon capturé a évolué en `to` : il reste capturé au Pokédex (comme
+  // dans le jeu) mais passe en « a évolué » ; la forme évoluée devient vue et
+  // capturée ; dans l'équipe, le premier membre de l'espèce est remplacé par
+  // sa forme évoluée (en gardant ses marques Baron / chromatique).
+  function evolve(apiName: string, to: { apiName: string; name: string; sprite: string }) {
+    const now = Date.now()
+    data.pokemon[apiName] = {
+      ...get(apiName),
+      seen: true,
+      caught: true,
+      evolved: true,
+      updatedAt: now,
+    }
+    data.pokemon[to.apiName] = { ...get(to.apiName), seen: true, caught: true, updatedAt: now }
+    const member = data.team.members.find((m) => m.apiName === apiName)
+    if (member) {
+      Object.assign(member, { apiName: to.apiName, name: to.name, sprite: to.sprite })
+      data.team.updatedAt = now
+    }
+  }
+
+  // Annule seulement l'état « a évolué » (la forme évoluée reste capturée).
+  function undoEvolve(apiName: string) {
+    data.pokemon[apiName] = { ...get(apiName), evolved: false, updatedAt: Date.now() }
   }
 
   function getAlpha(key: string): Omit<AlphaProgress, 'updatedAt'> {
@@ -175,8 +221,15 @@ export const useProgressStore = defineStore('progress', () => {
     return data.team.members.filter((m) => m.apiName === apiName).length
   }
 
+  // Membres de l'équipe de cette espèce, en distinguant les Barons.
+  function teamCounts(apiName: string): { normal: number; alpha: number } {
+    const same = data.team.members.filter((m) => m.apiName === apiName)
+    const alpha = same.filter((m) => m.alpha).length
+    return { normal: same.length - alpha, alpha }
+  }
+
   // Avoir un Pokémon dans l'équipe suppose de l'avoir capturé.
-  function addToTeam(apiName: string, name: string, sprite: string) {
+  function addToTeam(apiName: string, name: string, sprite: string, alpha = false) {
     if (isTeamFull.value) return
     if (!get(apiName).caught) toggle(apiName, 'caught')
     data.team.members.push({
@@ -184,10 +237,15 @@ export const useProgressStore = defineStore('progress', () => {
       apiName,
       name,
       sprite,
-      alpha: false,
+      alpha,
       shiny: false,
     })
     data.team.updatedAt = Date.now()
+    // Sans Baron fixe, un Baron dans l'équipe vient forcément d'ailleurs
+    // (invasion, distorsion...) : on le note comme capturé. Avec des Barons
+    // fixes, on ne sait pas lequel : l'utilisateur coche le bon.
+    const other = otherAlphaKey(apiName)
+    if (alpha && !hasFixedAlphas(apiName) && !getAlpha(other).caught) toggleAlpha(other, 'caught')
   }
 
   function removeFromTeam(id: string) {
@@ -202,16 +260,13 @@ export const useProgressStore = defineStore('progress', () => {
     data.team.updatedAt = Date.now()
   }
 
+  // Barons capturés : fixes (sur les 93 emplacements) et autres, séparément.
   const counts = computed(() => {
-    const all = Object.values(data.pokemon)
+    const caughtAlphas = Object.entries(data.alphas).filter(([, a]) => a.caught)
+    const other = caughtAlphas.filter(([key]) => isOtherAlphaKey(key)).length
     return {
-      seen: all.filter((p) => p.seen).length,
-      caught: all.filter((p) => p.caught).length,
-      researchDone: all.filter((p) => p.researchDone).length,
-      shiny: all.filter((p) => p.shiny).length,
-      alphasEncountered: Object.values(data.alphas).filter((a) => a.encountered || a.caught).length,
-      alphasDefeated: Object.values(data.alphas).filter((a) => a.defeated).length,
-      alphas: Object.values(data.alphas).filter((a) => a.caught).length,
+      alphas: caughtAlphas.length - other,
+      alphasOther: other,
     }
   })
 
@@ -227,12 +282,15 @@ export const useProgressStore = defineStore('progress', () => {
     replaceAll,
     get,
     toggle,
+    evolve,
+    undoEvolve,
     getAlpha,
     isAlphaCaught,
     toggleAlpha,
     counts,
     isTeamFull,
     teamCount,
+    teamCounts,
     addToTeam,
     removeFromTeam,
     toggleMemberFlag,

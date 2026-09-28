@@ -52,6 +52,9 @@ const emit = defineEmits<{
           title="Chromatique capturé"
           >✦</span
         >
+        <span v-if="progress.get(entry.apiName).evolved" class="entry-evolved" title="A évolué"
+          >↗</span
+        >
       </span>
       <span class="entry-types">
         <span
@@ -105,6 +108,11 @@ const emit = defineEmits<{
 .entry-shiny {
   color: #9a5cc8;
   font-size: 0.9em;
+  margin-left: 2px;
+}
+.entry-evolved {
+  color: #2f7a4f;
+  font-size: 0.85em;
   margin-left: 2px;
 }
 .entry-legend {

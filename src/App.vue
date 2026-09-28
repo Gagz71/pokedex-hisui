@@ -9,7 +9,7 @@ import ProgressToggles from './components/ProgressToggles.vue'
 import TeamStrip from './components/TeamStrip.vue'
 import SyncPanel from './components/SyncPanel.vue'
 import { useSyncStore } from './stores/sync'
-import { useProgressStore, alphaKey } from './stores/progress'
+import { useProgressStore, alphaKey, otherAlphaKey } from './stores/progress'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
 import { TYPE_COLORS } from './data/typeColors'
 
@@ -107,6 +107,7 @@ type StatusFilter =
   | 'research-done'
   | 'research-todo'
   | 'shiny'
+  | 'evolved'
   | 'alpha-any'
   | 'alpha-encountered'
   | 'alpha-defeated'
@@ -124,6 +125,7 @@ const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: str
       { value: 'research-done', label: 'Recherche terminée' },
       { value: 'research-todo', label: 'Recherche à terminer' },
       { value: 'shiny', label: 'Chromatiques capturés' },
+      { value: 'evolved', label: 'Ont évolué' },
     ],
   },
   {
@@ -133,7 +135,7 @@ const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: str
       { value: 'alpha-encountered', label: 'Barons rencontrés' },
       { value: 'alpha-defeated', label: 'Barons battus' },
       { value: 'alpha-caught', label: 'Barons capturés' },
-      { value: 'alpha-todo', label: 'Barons pas encore capturés' },
+      { value: 'alpha-todo', label: 'Barons fixes pas encore capturés' },
     ],
   },
 ]
@@ -144,11 +146,13 @@ function setStatusFilter(value: StatusFilter | null) {
   statusFilter.value = value
   isStatusMenuOpen.value = false
 }
-// Les filtres Barons portent sur les Barons fixes de l'espèce : « rencontrés »
-// = au moins un rencontré, « pas encore capturés » = au moins un restant.
+// « Rencontrés / battus / capturés » : au moins un Baron de l'espèce, fixe ou
+// non. « Avec un Baron fixe » et « pas encore capturés » ne portent que sur
+// les emplacements fixes (les autres Barons n'ont pas de liste finie).
 function matchesStatus(apiName: string, filter: StatusFilter): boolean {
   const p = progress.get(apiName)
-  const alphas = (ALPHA_KEYS[apiName] ?? []).map((k) => progress.getAlpha(k))
+  const fixed = (ALPHA_KEYS[apiName] ?? []).map((k) => progress.getAlpha(k))
+  const alphas = [...fixed, progress.getAlpha(otherAlphaKey(apiName))]
   switch (filter) {
     case 'seen':
       return p.seen
@@ -164,8 +168,10 @@ function matchesStatus(apiName: string, filter: StatusFilter): boolean {
       return !p.researchDone
     case 'shiny':
       return p.shiny
+    case 'evolved':
+      return p.evolved
     case 'alpha-any':
-      return alphas.length > 0
+      return fixed.length > 0
     case 'alpha-encountered':
       return alphas.some((a) => a.encountered)
     case 'alpha-defeated':
@@ -173,7 +179,7 @@ function matchesStatus(apiName: string, filter: StatusFilter): boolean {
     case 'alpha-caught':
       return alphas.some((a) => a.caught)
     case 'alpha-todo':
-      return alphas.some((a) => !a.caught)
+      return fixed.some((a) => !a.caught)
     default:
       return true
   }
@@ -719,8 +725,11 @@ function handleTypeFilter(slug: string) {
   selectedName.value = null
 }
 
+// Retour à l'index : on repart d'une recherche vide (les filtres Type et
+// Statut, eux, sont gardés).
 function backToIndex() {
   selectedName.value = null
+  searchQuery.value = ''
 }
 
 function goBack() {
@@ -828,7 +837,11 @@ function goBack() {
             >
             <span
               ><b class="c-alpha">B</b> {{ progress.counts.alphas }}/{{ TOTAL_ALPHAS }} Barons
-              capturés</span
+              fixes<template v-if="progress.counts.alphasOther">
+                · {{ progress.counts.alphasOther }} autre{{
+                  progress.counts.alphasOther > 1 ? 's' : ''
+                }}</template
+              ></span
             >
             <span v-if="hisuiCounts.shiny"><b class="c-shiny">✦</b> {{ hisuiCounts.shiny }}</span>
           </p>
@@ -848,7 +861,7 @@ function goBack() {
           >
             <template #nav>
               <div class="nav-row">
-                <button class="close-tab" @click="selectedName = null">← Retour à l'index</button>
+                <button class="close-tab" @click="backToIndex">← Retour à l'index</button>
                 <button class="close-tab" v-if="isOpen" @click="isOpen = false">
                   ✕ Fermer le livre
                 </button>
@@ -866,6 +879,9 @@ function goBack() {
                 :apiName="pokemon.apiName"
                 :name="pokemon.name"
                 :sprite="pokemon.sprite"
+                :canBeAlpha="!pokemon.rarity"
+                :evolutions="pokemon.evolutions"
+                @select="handleSelect"
               />
             </template>
           </PokemonArtCard>

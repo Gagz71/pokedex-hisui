@@ -21,6 +21,7 @@ const emptySlots = computed(() => Math.max(0, TEAM_SIZE - members.value.length))
     </p>
     <ul v-else class="team-slots">
       <li v-for="m in members" :key="m.id" class="slot" :class="{ alpha: m.alpha }">
+        <span v-if="m.alpha" class="slot-ribbon">Baron</span>
         <button
           class="slot-open"
           :title="`Ouvrir la fiche de ${m.name}`"
@@ -106,6 +107,21 @@ const emptySlots = computed(() => Math.max(0, TEAM_SIZE - members.value.length))
 }
 .slot.alpha {
   border-color: #c62f2f;
+  background: #fff6f6;
+}
+.slot-ribbon {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #c62f2f;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
 }
 .slot.empty {
   border-style: dashed;
