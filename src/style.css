@@ -18,8 +18,6 @@
      tiennent dans la largeur, hauteur calée sur celle de l'écran. */
   --page-w: min(700px, calc((100vw - 72px) / 2));
   --page-h: clamp(560px, calc(100dvh - 80px), 780px);
-  /* hauteur de la page illustration quand les pages sont empilées */
-  --art-h: min(52vh, 460px);
 }
 
 @media (prefers-color-scheme: dark) {

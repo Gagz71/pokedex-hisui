@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import BookCover from './components/BookCover.vue'
 import PokemonArtCard from './components/PokemonArtCard.vue'
 import PokemonInfoCard from './components/PokemonInfoCard.vue'
 import PokedexIndex from './components/PokedexIndex.vue'
 import CreditsPanel from './components/CreditsPanel.vue'
+import ProgressToggles from './components/ProgressToggles.vue'
+import TeamStrip from './components/TeamStrip.vue'
+import SyncPanel from './components/SyncPanel.vue'
+import { useSyncStore } from './stores/sync'
+import { useProgressStore, alphaKey } from './stores/progress'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
 import { TYPE_COLORS } from './data/typeColors'
 
@@ -19,6 +24,16 @@ const isSortMenuOpen = ref(false)
 const typeFilter = ref<string | null>(null)
 const isTypeMenuOpen = ref(false)
 const isCreditsOpen = ref(false)
+const isSyncOpen = ref(false)
+const sync = useSyncStore()
+// Retour d'un lien « mot de passe oublié » : on ouvre directement le panneau
+// pour choisir le nouveau mot de passe.
+watch(
+  () => sync.recovering,
+  (recovering) => {
+    if (recovering) isSyncOpen.value = true
+  },
+)
 
 function setTypeFilter(slug: string | null) {
   typeFilter.value = slug
@@ -71,12 +86,118 @@ const entries = ref<PokedexEntry[]>([])
 
 const searchQuery = ref('')
 
+// --- Progression de la partie : filtre de l'index et compteurs
+const progress = useProgressStore()
+
+// Barons fixes de chaque espèce (clés de progression), pour le filtre et le
+// total du compteur.
+const ALPHA_KEYS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(HISUI_LOCATIONS).map(([api, locs]) => [
+    api,
+    locs.flatMap((l) => (l.alphas ?? []).map((place) => alphaKey(api, l.region, place))),
+  ]),
+)
+const TOTAL_ALPHAS = Object.values(ALPHA_KEYS).reduce((n, keys) => n + keys.length, 0)
+
+type StatusFilter =
+  | 'seen'
+  | 'not-seen'
+  | 'caught'
+  | 'not-caught'
+  | 'research-done'
+  | 'research-todo'
+  | 'shiny'
+  | 'alpha-any'
+  | 'alpha-encountered'
+  | 'alpha-defeated'
+  | 'alpha-caught'
+  | 'alpha-todo'
+// Regroupées par thème dans le menu Statut
+const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: string }[] }[] = [
+  {
+    title: 'Pokédex',
+    filters: [
+      { value: 'seen', label: 'Vus' },
+      { value: 'not-seen', label: 'Pas encore vus' },
+      { value: 'caught', label: 'Capturés' },
+      { value: 'not-caught', label: 'Pas encore capturés' },
+      { value: 'research-done', label: 'Recherche terminée' },
+      { value: 'research-todo', label: 'Recherche à terminer' },
+      { value: 'shiny', label: 'Chromatiques capturés' },
+    ],
+  },
+  {
+    title: 'Barons',
+    filters: [
+      { value: 'alpha-any', label: 'Avec un Baron fixe' },
+      { value: 'alpha-encountered', label: 'Barons rencontrés' },
+      { value: 'alpha-defeated', label: 'Barons battus' },
+      { value: 'alpha-caught', label: 'Barons capturés' },
+      { value: 'alpha-todo', label: 'Barons pas encore capturés' },
+    ],
+  },
+]
+const STATUS_FILTERS = STATUS_GROUPS.flatMap((g) => g.filters)
+const statusFilter = ref<StatusFilter | null>(null)
+const isStatusMenuOpen = ref(false)
+function setStatusFilter(value: StatusFilter | null) {
+  statusFilter.value = value
+  isStatusMenuOpen.value = false
+}
+// Les filtres Barons portent sur les Barons fixes de l'espèce : « rencontrés »
+// = au moins un rencontré, « pas encore capturés » = au moins un restant.
+function matchesStatus(apiName: string, filter: StatusFilter): boolean {
+  const p = progress.get(apiName)
+  const alphas = (ALPHA_KEYS[apiName] ?? []).map((k) => progress.getAlpha(k))
+  switch (filter) {
+    case 'seen':
+      return p.seen
+    case 'not-seen':
+      return !p.seen
+    case 'caught':
+      return p.caught
+    case 'not-caught':
+      return !p.caught
+    case 'research-done':
+      return p.researchDone
+    case 'research-todo':
+      return !p.researchDone
+    case 'shiny':
+      return p.shiny
+    case 'alpha-any':
+      return alphas.length > 0
+    case 'alpha-encountered':
+      return alphas.some((a) => a.encountered)
+    case 'alpha-defeated':
+      return alphas.some((a) => a.defeated)
+    case 'alpha-caught':
+      return alphas.some((a) => a.caught)
+    case 'alpha-todo':
+      return alphas.some((a) => !a.caught)
+    default:
+      return true
+  }
+}
+const hisuiCounts = computed(() => {
+  const inDex = entries.value.map((e) => progress.get(e.apiName))
+  return {
+    seen: inDex.filter((p) => p.seen).length,
+    caught: inDex.filter((p) => p.caught).length,
+    researchDone: inDex.filter((p) => p.researchDone).length,
+    shiny: inDex.filter((p) => p.shiny).length,
+  }
+})
+
 //Recherche de l'entrée par le nom ou le numéro, filtrée par type si choisi
 const filteredEntries = computed(() => {
   const query = normalize(searchQuery.value.trim())
   let list = sortedEntries.value
   if (typeFilter.value) {
     list = list.filter((e) => e.typeSlugs.includes(typeFilter.value as string))
+  }
+  if (statusFilter.value) {
+    const filter = statusFilter.value
+    list = list.filter((e) => matchesStatus(e.apiName, filter))
   }
   if (!query) return list
   return list.filter(
@@ -615,9 +736,13 @@ function goBack() {
   <div class="scene">
     <div class="book" :class="{ open: isOpen, 'has-pokemon': !!selectedName }">
       <div class="page page-left">
-        <button class="close-tab" v-if="isOpen && !selectedName" @click="isOpen = false">
-          ✕ Fermer le livre
-        </button>
+        <div class="nav-row index-nav" v-if="isOpen && !selectedName">
+          <button class="sync-button" :class="sync.status" @click="isSyncOpen = true">
+            <span class="sync-dot"></span>
+            {{ sync.user ? 'Synchronisé' : 'Synchroniser mes appareils' }}
+          </button>
+          <button class="close-tab" @click="isOpen = false">✕ Fermer le livre</button>
+        </div>
         <div class="index-toolbar" v-if="!selectedName">
           <input
             v-model="searchQuery"
@@ -651,6 +776,29 @@ function goBack() {
           </div>
 
           <div class="sort-menu">
+            <button class="sort-toggle" @click="isStatusMenuOpen = !isStatusMenuOpen">
+              {{ STATUS_FILTERS.find((f) => f.value === statusFilter)?.label ?? 'Statut' }}
+              <span class="arrow" :class="{ open: isStatusMenuOpen }">▾</span>
+            </button>
+            <ul class="sort-options" v-if="isStatusMenuOpen">
+              <li @click="setStatusFilter(null)" :class="{ active: !statusFilter }">
+                Tous les Pokémon
+              </li>
+              <template v-for="group in STATUS_GROUPS" :key="group.title">
+                <li class="menu-group">{{ group.title }}</li>
+                <li
+                  v-for="f in group.filters"
+                  :key="f.value"
+                  @click="setStatusFilter(f.value)"
+                  :class="{ active: statusFilter === f.value }"
+                >
+                  {{ f.label }}
+                </li>
+              </template>
+            </ul>
+          </div>
+
+          <div class="sort-menu">
             <button class="sort-toggle" @click="isSortMenuOpen = !isSortMenuOpen">
               Tri <span class="arrow" :class="{ open: isSortMenuOpen }">▾</span>
             </button>
@@ -664,6 +812,26 @@ function goBack() {
         </div>
 
         <template v-if="!selectedName">
+          <TeamStrip @select="handleSelect" />
+          <p v-if="entries.length" class="progress-summary">
+            <span
+              ><b class="c-caught">●</b> {{ hisuiCounts.caught }}/{{
+                entries.length
+              }}
+              capturés</span
+            >
+            <span
+              ><b class="c-research">★</b> {{ hisuiCounts.researchDone }}/{{
+                entries.length
+              }}
+              recherches</span
+            >
+            <span
+              ><b class="c-alpha">B</b> {{ progress.counts.alphas }}/{{ TOTAL_ALPHAS }} Barons
+              capturés</span
+            >
+            <span v-if="hisuiCounts.shiny"><b class="c-shiny">✦</b> {{ hisuiCounts.shiny }}</span>
+          </p>
           <PokedexIndex :entries="firstHalf" @select="handleSelect" />
           <button class="credits-link" @click="isCreditsOpen = true">
             Projet de fan non officiel · Crédits
@@ -693,6 +861,13 @@ function goBack() {
                 ← {{ pokemon.previousEvolution.name }}
               </button>
             </template>
+            <template #footer>
+              <ProgressToggles
+                :apiName="pokemon.apiName"
+                :name="pokemon.name"
+                :sprite="pokemon.sprite"
+              />
+            </template>
           </PokemonArtCard>
         </template>
       </div>
@@ -713,6 +888,7 @@ function goBack() {
 
       <BookCover :isOpen="isOpen" @toggle="isOpen = !isOpen" />
       <CreditsPanel :open="isCreditsOpen" @close="isCreditsOpen = false" />
+      <SyncPanel :open="isSyncOpen" @close="isSyncOpen = false" />
     </div>
   </div>
 </template>
@@ -831,6 +1007,77 @@ function goBack() {
 .close-tab.prev-evo:hover {
   color: #1a3d1a;
 }
+.progress-summary {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.progress-summary b {
+  margin-right: 2px;
+}
+.c-caught {
+  color: #c62f2f;
+}
+.c-research {
+  color: #d99a1c;
+}
+.c-alpha {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: #c62f2f;
+  color: #fff;
+  font-size: 10px;
+}
+.c-shiny {
+  color: #9a5cc8;
+}
+.index-nav {
+  margin-bottom: 12px;
+}
+/* Pastille d'état : grise hors connexion, verte synchronisé, orange en
+   cours ou hors ligne, rouge en erreur */
+.sync-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.sync-button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa1b4;
+}
+.sync-button.ok .sync-dot {
+  background: var(--hp-ok);
+}
+.sync-button.syncing .sync-dot,
+.sync-button.offline .sync-dot {
+  background: var(--hp-mid);
+}
+.sync-button.error .sync-dot {
+  background: var(--hp-low);
+}
 .credits-link {
   flex-shrink: 0;
   align-self: center;
@@ -926,6 +1173,21 @@ function goBack() {
   align-items: center;
   gap: 8px;
 }
+.sort-options li.active {
+  background: var(--accent);
+  color: #fff;
+}
+/* Titre de section dans le menu Statut (non cliquable) */
+.sort-options li.menu-group {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  cursor: default;
+  pointer-events: none;
+}
 .sort-options li:hover,
 .type-options li:hover {
   background: rgba(0, 0, 0, 0.06);
@@ -995,7 +1257,8 @@ function goBack() {
     display: none;
   }
   .book.has-pokemon .page-left {
-    height: var(--art-h);
+    height: auto;
+    overflow: visible;
   }
   .page-left,
   .page-right {

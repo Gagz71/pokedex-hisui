@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { TYPE_COLORS } from '../data/typeColors'
+import { useProgressStore } from '../stores/progress'
+
+const progress = useProgressStore()
+
+// Marque d'état : la plus avancée l'emporte (recherche > capturé > vu).
+function statusOf(apiName: string): { mark: string; cls: string; title: string } | null {
+  const p = progress.get(apiName)
+  if (p.researchDone) return { mark: '★', cls: 'research', title: 'Recherche terminée' }
+  if (p.caught) return { mark: '●', cls: 'caught', title: 'Capturé' }
+  if (p.seen) return { mark: '◉', cls: 'seen', title: 'Vu' }
+  return null
+}
 
 defineProps<{
   entries: {
@@ -19,6 +31,12 @@ const emit = defineEmits<{
 <template>
   <ul class="entry-list">
     <li v-for="entry in entries" :key="entry.entryNumber" @click="emit('select', entry.apiName)">
+      <span
+        class="entry-status"
+        :class="statusOf(entry.apiName)?.cls"
+        :title="statusOf(entry.apiName)?.title"
+        >{{ statusOf(entry.apiName)?.mark ?? '' }}</span
+      >
       <span class="entry-number">#{{ entry.entryNumber }}</span>
       <span class="entry-name">
         {{ entry.name }}
@@ -27,6 +45,12 @@ const emit = defineEmits<{
           class="entry-legend"
           :title="entry.rarity === 'mythical' ? 'Pokémon fabuleux' : 'Pokémon légendaire'"
           >★</span
+        >
+        <span
+          v-if="progress.get(entry.apiName).shiny"
+          class="entry-shiny"
+          title="Chromatique capturé"
+          >✦</span
         >
       </span>
       <span class="entry-types">
@@ -62,6 +86,26 @@ const emit = defineEmits<{
 }
 .entry-name {
   flex: 1;
+}
+.entry-status {
+  width: 14px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 13px;
+}
+.entry-status.seen {
+  color: #5b7aa8;
+}
+.entry-status.caught {
+  color: #c62f2f;
+}
+.entry-status.research {
+  color: #d99a1c;
+}
+.entry-shiny {
+  color: #9a5cc8;
+  font-size: 0.9em;
+  margin-left: 2px;
 }
 .entry-legend {
   color: #e0a21b;

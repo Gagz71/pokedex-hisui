@@ -47,6 +47,7 @@ const darkColor = computed(() => shade(primaryColor.value, -0.55))
         <img :src="sprite" :alt="name" />
       </div>
       <p class="name">{{ name }}</p>
+      <div v-if="$slots.footer" class="footer-slot"><slot name="footer" /></div>
     </div>
   </div>
 </template>
@@ -75,7 +76,8 @@ const darkColor = computed(() => shade(primaryColor.value, -0.55))
   background: #f4faef;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* défile si le suivi (Barons, équipe) ne tient pas sur un petit écran */
+  overflow-y: auto;
 }
 
 .nav-slot {
@@ -100,14 +102,38 @@ const darkColor = computed(() => shade(primaryColor.value, -0.55))
   box-sizing: border-box;
 }
 
+.footer-slot {
+  flex-shrink: 0;
+  padding: 0 16px 16px;
+}
 .name {
   flex-shrink: 0;
   text-align: center;
-  padding: 0 16px 20px;
+  padding: 0 16px 12px;
   font-size: 27px;
   font-weight: 800;
   color: #1a3d1a;
   text-transform: capitalize;
   margin: 0;
+}
+
+/* L'illustration garde toujours une taille lisible, même quand le suivi
+   (Barons, équipe) prend de la place en dessous. */
+.art-stage {
+  min-height: 150px;
+}
+
+/* Pages empilées (téléphone, tablette en portrait) : la carte grandit avec
+   son contenu au lieu d'avoir une hauteur fixe. Même seuil que App.vue. */
+@media (max-width: 959px) {
+  .panel {
+    position: relative;
+    inset: auto;
+    margin: 10px;
+  }
+  .art-stage {
+    flex: none;
+    height: min(38vh, 320px);
+  }
 }
 </style>

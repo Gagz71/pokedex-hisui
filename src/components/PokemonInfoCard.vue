@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { TYPE_COLORS } from '../data/typeColors'
+import { useProgressStore, alphaKey } from '../stores/progress'
 
 const props = defineProps<{
   pokemon: {
@@ -126,6 +127,17 @@ const JUBILIFE_PIN = {
   cx: 23.5,
   cy: 57.6,
   zoom: 3.3,
+}
+
+const progress = useProgressStore()
+
+// Rappel de l'état d'un Baron fixe dans l'onglet Carte (le suivi se fait
+// sous l'illustration, avec les autres boutons de progression).
+function alphaStatus(region: string, place: string): string {
+  const a = progress.getAlpha(alphaKey(props.pokemon.apiName, region, place))
+  const done = [a.caught && 'capturé', a.defeated && 'battu'].filter(Boolean)
+  if (done.length) return '✓ ' + done.join(' et ')
+  return a.encountered ? 'rencontré' : ''
 }
 
 const RARITY_LABELS = { legendary: 'Légendaire', mythical: 'Fabuleux' } as const
@@ -495,9 +507,21 @@ const hoveredZoneName = ref<string | null>(null)
             <div v-for="loc in pokemon.locations" :key="loc.region" class="location-item">
               <span class="location-region">{{ loc.region }}</span>
               <span class="location-details">{{ loc.details }}</span>
-              <span v-if="loc.alphas?.length" class="location-alpha">
-                <b>Baron</b> {{ loc.alphas.join(' · ') }}
-              </span>
+              <div v-if="loc.alphas?.length" class="location-alphas">
+                <span
+                  v-for="place in loc.alphas"
+                  :key="place"
+                  class="location-alpha"
+                  :class="{
+                    caught: progress.isAlphaCaught(alphaKey(pokemon.apiName, loc.region, place)),
+                  }"
+                >
+                  <b>Baron</b> {{ place }}
+                  <em v-if="alphaStatus(loc.region, place)" class="location-alpha-status">
+                    {{ alphaStatus(loc.region, place) }}
+                  </em>
+                </span>
+              </div>
             </div>
           </div>
           <div v-else-if="activeView === 'moveset'" class="moveset">
@@ -1231,13 +1255,33 @@ button.evo-final-poke:hover {
   font-weight: 700;
   color: #1a1a1a;
 }
+.location-alphas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
 .location-alpha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   font-size: 13.5px;
   color: #a82424;
 }
+.location-alpha.caught {
+  color: #5b6373;
+}
+.location-alpha-status {
+  font-size: 12px;
+  font-style: normal;
+  color: #5b6373;
+}
+.location-alpha.caught b {
+  background: #8a8f98;
+}
 .location-alpha b {
   display: inline-block;
-  margin-right: 4px;
   padding: 1px 7px;
   border-radius: 999px;
   background: #c62f2f;
