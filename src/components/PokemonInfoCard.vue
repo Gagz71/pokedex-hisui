@@ -5,13 +5,22 @@ import { TYPE_COLORS } from '../data/typeColors'
 const props = defineProps<{
   pokemon: {
     name: string
+    sprite: string
     types: string[]
     typeSlugs: string[]
     abilities: string[]
     stats: { name: string; value: number }[]
     evolutions: { apiName: string; name: string; sprite: string; condition: string }[]
     previousEvolution: { apiName: string; name: string; sprite: string } | null
-    locations: { region: string; details: string }[]
+    evolvedFromCondition: string
+    evolutionLine: { apiName: string; name: string; sprite: string; condition: string }[][]
+    apiName: string
+    hisuiNumber: number | null
+    rarity: 'legendary' | 'mythical' | null
+    height: number
+    weight: number
+    femaleRatio: number | null
+    locations: { region: string; details: string; alphas?: string[] }[]
     genus: string
     description: string
     weaknesses: { type: string; slug: string; multiplier: number }[]
@@ -119,6 +128,26 @@ const JUBILIFE_PIN = {
   zoom: 3.3,
 }
 
+const RARITY_LABELS = { legendary: 'Légendaire', mythical: 'Fabuleux' } as const
+
+// Barons à emplacement fixe (champ alphas des localisations). Les Barons des
+// invasions massives ne sont pas listés.
+const alphaPlaces = computed(() => props.pokemon.locations.flatMap((l) => l.alphas ?? []))
+
+const formatNumber = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+
+const genderLabel = computed(() => {
+  const ratio = props.pokemon.femaleRatio
+  if (ratio === null) return 'Asexué'
+  if (ratio === 0) return '100 % ♂'
+  if (ratio === 1) return '100 % ♀'
+  return `${formatNumber((1 - ratio) * 100)} % ♂ · ${formatNumber(ratio * 100)} % ♀`
+})
+
+const isFinalStage = computed(
+  () => props.pokemon.evolutions.length === 0 && props.pokemon.evolutionLine.length > 1,
+)
+
 const activeRegions = computed(() => new Set(props.pokemon.locations.map((l) => l.region)))
 
 const activeZones = computed(() => HISUI_ZONES.filter((z) => activeRegions.value.has(z.name)))
@@ -166,13 +195,65 @@ const hoveredZoneName = ref<string | null>(null)
       <div class="window">
         <div class="content" v-if="isSimpleView">
           <div v-if="activeView === 'defaut'" class="accueil">
-            <p class="genus">{{ pokemon.genus }}</p>
-            <p class="dex-text">{{ pokemon.description }}</p>
-            <div class="abilities">
-              <span class="abilities-label">Talents</span>
-              <ul class="abilities-list">
-                <li v-for="ability in pokemon.abilities" :key="ability">{{ ability }}</li>
-              </ul>
+            <div class="badges">
+              <span v-if="pokemon.hisuiNumber" class="badge">
+                N° {{ String(pokemon.hisuiNumber).padStart(3, '0') }} du Pokédex de Hisui
+              </span>
+              <span v-if="pokemon.rarity" class="badge badge-legend">
+                ★ {{ RARITY_LABELS[pokemon.rarity] }}
+              </span>
+              <button
+                v-if="alphaPlaces.length"
+                class="badge badge-alpha"
+                title="Voir les emplacements sur la carte"
+                @click="activeView = 'localisation'"
+              >
+                Baron : {{ alphaPlaces.join(' · ') }}
+              </button>
+            </div>
+
+            <div class="dex-entry">
+              <p class="genus">{{ pokemon.genus }}</p>
+              <p class="dex-text">{{ pokemon.description }}</p>
+            </div>
+
+            <div class="facts">
+              <div class="fact">
+                <span class="fact-label">Taille</span>
+                <span class="fact-value">{{ formatNumber(pokemon.height) }} m</span>
+              </div>
+              <div class="fact">
+                <span class="fact-label">Poids</span>
+                <span class="fact-value">{{ formatNumber(pokemon.weight) }} kg</span>
+              </div>
+              <div class="fact fact-wide">
+                <span class="fact-label">Sexe</span>
+                <span class="fact-value">{{ genderLabel }}</span>
+                <div v-if="pokemon.femaleRatio !== null" class="gender-bar">
+                  <div
+                    class="gender-bar-male"
+                    :style="{ width: (1 - pokemon.femaleRatio) * 100 + '%' }"
+                  ></div>
+                </div>
+              </div>
+              <div class="fact fact-wide">
+                <span class="fact-label">Talents</span>
+                <span class="fact-value abilities-value">{{ pokemon.abilities.join(' · ') }}</span>
+              </div>
+            </div>
+
+            <div v-if="pokemon.locations.length" class="where">
+              <span class="fact-label">Où le trouver</span>
+              <div class="where-chips">
+                <button
+                  v-for="loc in pokemon.locations"
+                  :key="loc.region"
+                  class="where-chip"
+                  @click="activeView = 'localisation'"
+                >
+                  {{ loc.region }}
+                </button>
+              </div>
             </div>
           </div>
           <div v-else-if="activeView === 'stats'" class="stats">
@@ -260,21 +341,84 @@ const hoveredZoneName = ref<string | null>(null)
 
         <template v-else>
           <div v-if="activeView === 'evolution'" class="evolutions">
-            <p v-if="pokemon.evolutions.length === 0 && pokemon.previousEvolution" class="soon">
-              Évolution maximale atteinte.
-            </p>
-            <p v-else-if="pokemon.evolutions.length === 0" class="soon">Ce Pokémon n'évolue pas.</p>
+            <!-- Lignée complète, le Pokémon affiché mis en avant -->
+            <div v-if="pokemon.evolutionLine.length > 1" class="evo-line">
+              <template v-for="(stage, i) in pokemon.evolutionLine" :key="i">
+                <span v-if="i > 0" class="evo-arrow">→</span>
+                <div class="evo-stage">
+                  <button
+                    v-for="member in stage"
+                    :key="member.apiName"
+                    class="evo-member"
+                    :class="{ current: member.apiName === pokemon.apiName }"
+                    :title="member.name"
+                    @click="member.apiName !== pokemon.apiName && emit('select', member.apiName)"
+                  >
+                    <img :src="member.sprite" :alt="member.name" />
+                    <span>{{ member.name }}</span>
+                  </button>
+                </div>
+              </template>
+            </div>
+
             <div
-              v-for="evo in pokemon.evolutions"
-              :key="evo.apiName"
-              class="evolution-item"
-              @click="emit('select', evo.apiName)"
+              v-if="pokemon.evolutions.length"
+              class="evo-next"
+              :class="{ many: pokemon.evolutions.length > 2 }"
             >
-              <img :src="evo.sprite" :alt="evo.name" />
-              <div class="evolution-text">
-                <span class="evolution-name">{{ evo.name }}</span>
-                <span class="evolution-condition">{{ evo.condition }}</span>
+              <div
+                v-for="evo in pokemon.evolutions"
+                :key="evo.apiName"
+                class="evolution-item"
+                @click="emit('select', evo.apiName)"
+              >
+                <img :src="evo.sprite" :alt="evo.name" />
+                <div class="evolution-text">
+                  <span class="evolution-name">{{ evo.name }}</span>
+                  <span class="evolution-condition">{{ evo.condition }}</span>
+                </div>
               </div>
+            </div>
+
+            <!-- Stade final : on raconte comment il a été obtenu -->
+            <div v-if="isFinalStage && pokemon.previousEvolution" class="evo-final">
+              <span class="evo-final-tag">Évolution maximale atteinte</span>
+              <div class="evo-final-row">
+                <button
+                  class="evo-final-poke"
+                  @click="emit('select', pokemon.previousEvolution.apiName)"
+                >
+                  <img
+                    :src="pokemon.previousEvolution.sprite"
+                    :alt="pokemon.previousEvolution.name"
+                  />
+                  <span>{{ pokemon.previousEvolution.name }}</span>
+                </button>
+                <div class="evo-final-how">
+                  <span class="evo-final-arrow">→</span>
+                  <span>{{ pokemon.evolvedFromCondition }}</span>
+                </div>
+                <div class="evo-final-poke current">
+                  <img :src="pokemon.sprite" :alt="pokemon.name" />
+                  <span>{{ pokemon.name }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pas de lignée du tout -->
+            <div v-if="pokemon.evolutionLine.length <= 1" class="evo-none">
+              <img :src="pokemon.sprite" :alt="pokemon.name" />
+              <span class="evo-none-title">Ce Pokémon n'évolue pas</span>
+              <span class="evo-none-text">
+                <template v-if="pokemon.rarity">
+                  C'est un Pokémon {{ RARITY_LABELS[pokemon.rarity].toLowerCase() }} : il n'a ni
+                  pré-évolution ni évolution.
+                </template>
+                <template v-else>
+                  {{ pokemon.name }} n'a ni pré-évolution ni évolution : il reste tel quel pendant
+                  toute l'aventure.
+                </template>
+              </span>
             </div>
           </div>
           <div v-else-if="activeView === 'localisation'" class="locations">
@@ -351,6 +495,9 @@ const hoveredZoneName = ref<string | null>(null)
             <div v-for="loc in pokemon.locations" :key="loc.region" class="location-item">
               <span class="location-region">{{ loc.region }}</span>
               <span class="location-details">{{ loc.details }}</span>
+              <span v-if="loc.alphas?.length" class="location-alpha">
+                <b>Baron</b> {{ loc.alphas.join(' · ') }}
+              </span>
             </div>
           </div>
           <div v-else-if="activeView === 'moveset'" class="moveset">
@@ -508,44 +655,127 @@ const hoveredZoneName = ref<string | null>(null)
   flex-direction: column;
   gap: 18px;
 }
-.genus {
-  font-size: 14px;
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.badge {
+  font-size: 12px;
   font-weight: 700;
-  font-style: italic;
-  color: #5b6373;
-  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef3e8;
+  color: #4a5a40;
 }
-.dex-text {
-  font-size: 17px;
-  line-height: 1.65;
-  color: #1a1a1a;
-  margin: 0;
+.badge-legend {
+  background: linear-gradient(135deg, #fbe08a, #e8a92b);
+  color: #5a3b00;
 }
-.abilities {
+.badge-alpha {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: #c62f2f;
+  color: #fff;
+  text-align: left;
+}
+.badge-alpha:hover {
+  background: #a82424;
+}
+.dex-entry {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 14px;
-  border-top: 1px solid #dce6d2;
+  padding: 14px 16px;
+  border-left: 4px solid var(--type-accent);
+  border-radius: 4px 10px 10px 4px;
+  background: #f4f8f0;
 }
-.abilities-label {
-  font-size: 12px;
+.genus {
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--type-accent);
-}
-.abilities-list {
-  list-style: none;
   margin: 0;
-  padding: 0;
+}
+.dex-text {
+  font-size: 18px;
+  line-height: 1.6;
+  font-style: italic;
+  color: #1a1a1a;
+  margin: 0;
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.fact {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 16px;
-  font-weight: 600;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #dce6d2;
+}
+.fact-wide {
+  grid-column: 1 / -1;
+}
+.fact-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7a62;
+}
+.fact-value {
+  font-size: 20px;
+  font-weight: 800;
   color: #1a1a1a;
+}
+.abilities-value {
+  font-size: 17px;
   text-transform: capitalize;
+}
+.gender-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #f07fa6;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.gender-bar-male {
+  height: 100%;
+  background: #4f8fe0;
+}
+.where {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.where-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.where-chip {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--type-accent);
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+.where-chip:hover {
+  background: var(--type-accent);
+  color: #fff;
 }
 
 .stats {
@@ -729,6 +959,192 @@ const hoveredZoneName = ref<string | null>(null)
   color: #5b6373;
 }
 
+.evo-next {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Beaucoup d'évolutions possibles (Évoli) : grille de cartes compactes, la
+   fenêtre défile si besoin au lieu d'écraser les cartes. */
+.evo-next.many {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.evo-next.many .evolution-item {
+  flex: none;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 8px 10px;
+}
+.evo-next.many .evolution-item img {
+  flex: none;
+  width: 64px;
+  height: 64px;
+}
+.evo-next.many .evolution-text {
+  align-items: flex-start;
+  text-align: left;
+  min-width: 0;
+}
+.evo-next.many .evolution-name {
+  font-size: 16px;
+}
+.evo-next.many .evolution-condition {
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.evo-line {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f4f8f0;
+}
+.evo-stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 60%;
+}
+.evo-arrow {
+  font-size: 18px;
+  font-weight: 800;
+  color: #9aa894;
+}
+.evo-member {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #4a5a40;
+}
+.evo-member:hover {
+  background: #e7efdd;
+}
+.evo-member.current {
+  border-color: var(--type-accent);
+  background: #fff;
+  cursor: default;
+}
+.evo-member img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+/* Évoli & co : beaucoup de membres sur un même stade, on réduit */
+.evo-stage:has(.evo-member:nth-child(4)) .evo-member img {
+  width: 40px;
+  height: 40px;
+}
+.evo-final,
+.evo-none {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 10px;
+  background: #f4f8f0;
+  text-align: center;
+}
+.evo-final-tag {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--type-accent);
+  color: #fff;
+}
+.evo-final-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.evo-final-poke {
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+button.evo-final-poke {
+  cursor: pointer;
+}
+button.evo-final-poke:hover {
+  background: #e7efdd;
+}
+.evo-final-poke img {
+  width: 100%;
+  max-width: 140px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.evo-final-poke.current img {
+  max-width: 170px;
+}
+.evo-final-how {
+  flex: 0 1 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #5b6373;
+}
+.evo-final-arrow {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--type-accent);
+}
+.evo-none img {
+  width: 55%;
+  max-width: 220px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.18));
+}
+.evo-none-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+.evo-none-text {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #5b6373;
+  max-width: 34ch;
+}
+
 .locations {
   flex: 1;
   min-height: 0;
@@ -809,6 +1225,21 @@ const hoveredZoneName = ref<string | null>(null)
   font-size: 16.5px;
   font-weight: 700;
   color: #1a1a1a;
+}
+.location-alpha {
+  font-size: 13.5px;
+  color: #a82424;
+}
+.location-alpha b {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #c62f2f;
+  color: #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 .location-details {
   font-size: 14px;

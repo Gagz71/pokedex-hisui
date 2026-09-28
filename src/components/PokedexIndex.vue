@@ -2,7 +2,13 @@
 import { TYPE_COLORS } from '../data/typeColors'
 
 defineProps<{
-  entries: { entryNumber: number; name: string; apiName: string; typeSlugs: string[] }[]
+  entries: {
+    entryNumber: number
+    name: string
+    apiName: string
+    typeSlugs: string[]
+    rarity: 'legendary' | 'mythical' | null
+  }[]
 }>()
 
 const emit = defineEmits<{
@@ -14,7 +20,15 @@ const emit = defineEmits<{
   <ul class="entry-list">
     <li v-for="entry in entries" :key="entry.entryNumber" @click="emit('select', entry.apiName)">
       <span class="entry-number">#{{ entry.entryNumber }}</span>
-      <span class="entry-name">{{ entry.name }}</span>
+      <span class="entry-name">
+        {{ entry.name }}
+        <span
+          v-if="entry.rarity"
+          class="entry-legend"
+          :title="entry.rarity === 'mythical' ? 'Pokémon fabuleux' : 'Pokémon légendaire'"
+          >★</span
+        >
+      </span>
       <span class="entry-types">
         <span
           v-for="slug in entry.typeSlugs"
@@ -48,6 +62,11 @@ const emit = defineEmits<{
 }
 .entry-name {
   flex: 1;
+}
+.entry-legend {
+  color: #e0a21b;
+  font-size: 0.9em;
+  margin-left: 2px;
 }
 .entry-types {
   display: flex;

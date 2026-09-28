@@ -31,14 +31,18 @@ const darkColor = computed(() => shade(primaryColor.value, -0.55))
 <template>
   <div
     class="art-card"
-    :style="{ background: `linear-gradient(160deg, ${lightColor} 0%, ${primaryColor} 55%, ${darkColor} 100%)` }"
+    :style="{
+      background: `linear-gradient(160deg, ${lightColor} 0%, ${primaryColor} 55%, ${darkColor} 100%)`,
+    }"
   >
     <div class="gloss"></div>
     <div class="panel">
       <div v-if="$slots.nav" class="nav-slot"><slot name="nav" /></div>
       <div
         class="art-stage"
-        :style="{ background: `radial-gradient(circle at 50% 32%, ${lightColor}, ${primaryColor} 78%)` }"
+        :style="{
+          background: `radial-gradient(circle at 50% 32%, ${lightColor}, ${primaryColor} 78%)`,
+        }"
       >
         <img :src="sprite" :alt="name" />
       </div>

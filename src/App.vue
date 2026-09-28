@@ -53,6 +53,16 @@ interface PokedexEntry {
   name: string //affichage en français
   apiName: string // pour l'appel API (slug anglais)
   typeSlugs: string[]
+  rarity: Rarity
+}
+
+// Légendaire / fabuleux, d'après les drapeaux is_legendary / is_mythical de
+// l'espèce dans PokeAPI.
+type Rarity = 'legendary' | 'mythical' | null
+function getRarity(speciesData: any): Rarity {
+  if (speciesData.is_mythical) return 'mythical'
+  if (speciesData.is_legendary) return 'legendary'
+  return null
 }
 
 const entries = ref<PokedexEntry[]>([])
@@ -103,6 +113,7 @@ async function fetchIndex() {
     name: getFrenchName(speciesResponses[i].names),
     apiName: e.pokemon_species.name,
     typeSlugs: pokemonResponses[i]?.types.map((t: any) => t.type.name) ?? [],
+    rarity: getRarity(speciesResponses[i]),
   }))
 }
 
@@ -159,6 +170,10 @@ interface EvoLink {
 interface EvolutionInfo extends EvoLink {
   condition: string
 }
+// Un stade de la lignée : plusieurs Pokémon quand la chaîne se ramifie
+// (Évoli, Farfuret...). condition = comment on obtient ce Pokémon depuis le
+// stade précédent (vide pour le premier stade).
+type EvolutionStage = EvolutionInfo[]
 
 interface PokemonData {
   name: string
@@ -169,6 +184,14 @@ interface PokemonData {
   stats: { name: string; value: number }[]
   evolutions: EvolutionInfo[]
   previousEvolution: EvoLink | null
+  evolvedFromCondition: string
+  evolutionLine: EvolutionStage[]
+  apiName: string
+  hisuiNumber: number | null
+  rarity: Rarity
+  height: number // en mètres
+  weight: number // en kg
+  femaleRatio: number | null // 0-1, null = asexué
   locations: LocationEntry[]
   genus: string
   description: string
@@ -218,6 +241,10 @@ function getFrenchDescription(entries: any[]): string {
 function describeEvolution(detail: any): string {
   if (!detail) return 'Montée de niveau'
   if (detail.min_level) return `Atteindre le niveau ${detail.min_level}`
+  if (detail.min_happiness && detail.known_move_type) {
+    const typeName = TYPE_LABELS[detail.known_move_type.name] ?? detail.known_move_type.name
+    return `Par amitié, en connaissant une capacité de type ${typeName}`
+  }
   if (detail.min_happiness) return 'Par amitié'
   if (detail.min_affection) return 'Par affection élevée'
   if (detail.known_move_type) {
@@ -260,10 +287,35 @@ function getDefaultVarietyUrl(speciesData: any): string {
     override ? v.pokemon.name === override : v.pokemon.name.endsWith('-hisui'),
   )
   const variety =
-    hisuiVariety ??
-    speciesData.varieties.find((v: any) => v.is_default) ??
-    speciesData.varieties[0]
+    hisuiVariety ?? speciesData.varieties.find((v: any) => v.is_default) ?? speciesData.varieties[0]
   return variety.pokemon.url
+}
+
+// Condition pour obtenir ce nœud depuis le stade précédent. On privilégie les
+// détails propres à Legends: Arceus, qui diffèrent parfois des autres jeux.
+async function describeNodeCondition(node: any): Promise<string> {
+  const details: any[] = node.evolution_details
+  const detail =
+    details.find((d: any) => d.version_group?.name === 'legends-arceus') ??
+    details.find((d: any) => d.version_group?.name === 'sword-shield') ??
+    details[0]
+
+  let condition = describeEvolution(detail)
+
+  if (detail?.item) {
+    const itemData = await fetch(detail.item.url).then((r) => r.json())
+    condition = `Utiliser l'objet : ${getFrenchName(itemData.names)}`
+  } else if (detail?.held_item) {
+    const heldItemData = await fetch(detail.held_item.url).then((r) => r.json())
+    condition = `Utiliser l'objet : ${getFrenchName(heldItemData.names)}`
+  } else if (detail?.trigger?.name === 'trade') {
+    condition = "Utiliser l'objet : Fil de Liaison"
+  } else if (detail?.known_move) {
+    const moveData = await fetch(detail.known_move.url).then((r) => r.json())
+    condition = `Connaître l'attaque : ${getFrenchName(moveData.names)}`
+  }
+
+  return condition + describeTimeOfDay(detail?.time_of_day)
 }
 
 //Fonction pour retouver pokemon évoluer
@@ -423,7 +475,8 @@ async function fetchPokemon(name: string) {
           name: getFrenchName(moveData.names),
           type: TYPE_LABELS[moveData.type.name] ?? moveData.type.name,
           typeSlug: moveData.type.name as string,
-          damageClass: DAMAGE_CLASS_LABELS[moveData.damage_class.name] ?? moveData.damage_class.name,
+          damageClass:
+            DAMAGE_CLASS_LABELS[moveData.damage_class.name] ?? moveData.damage_class.name,
           power: moveData.power as number | null,
           accuracy: moveData.accuracy as number | null,
           pp: moveData.pp as number,
@@ -441,54 +494,48 @@ async function fetchPokemon(name: string) {
     const currentNode = findChainNode(evoChainData.chain, data.species.name)
     const nextNodes = currentNode?.evolves_to ?? []
 
-    const evolutions = await Promise.all(
-      nextNodes.map(async (node: any) => {
-        const speciesRes = await fetch(node.species.url).then((r) => r.json())
-        const pokeRes = await fetch(getDefaultVarietyUrl(speciesRes)).then((r) => r.json())
-
-        const details: any[] = node.evolution_details
-        const detail =
-          details.find((d: any) => d.version_group?.name === 'legends-arceus') ??
-          details.find((d: any) => d.version_group?.name === 'sword-shield') ??
-          details[0]
-
-        let condition = describeEvolution(detail)
-
-        if (detail?.item) {
-          const itemData = await fetch(detail.item.url).then((r) => r.json())
-          condition = `Utiliser l'objet : ${getFrenchName(itemData.names)}`
-        } else if (detail?.held_item) {
-          const heldItemData = await fetch(detail.held_item.url).then((r) => r.json())
-          condition = `Utiliser l'objet : ${getFrenchName(heldItemData.names)}`
-        } else if (detail?.trigger?.name === 'trade') {
-          condition = "Utiliser l'objet : Fil de Liaison"
-        } else if (detail?.known_move) {
-          const moveData = await fetch(detail.known_move.url).then((r) => r.json())
-          condition = `Connaître l'attaque : ${getFrenchName(moveData.names)}`
-        }
-
-        condition += describeTimeOfDay(detail?.time_of_day)
-
-        return {
+    // Tous les nœuds de la chaîne, en ne gardant que les Pokémon présents dans
+    // le Pokédex de Hisui (ex. Raichu n'existe pas dans Legends: Arceus).
+    const hisuiNames = new Set(entries.value.map((e) => e.apiName))
+    const inHisui = (node: any) => hisuiNames.size === 0 || hisuiNames.has(node.species.name)
+    const chainNodes: any[] = []
+    const collect = (node: any) => {
+      chainNodes.push(node)
+      node.evolves_to.forEach(collect)
+    }
+    collect(evoChainData.chain)
+    const resolved = new Map<string, EvolutionInfo>()
+    await Promise.all(
+      chainNodes.filter(inHisui).map(async (node: any) => {
+        const nodeSpecies = await fetch(node.species.url).then((r) => r.json())
+        const nodePokemon = await fetch(getDefaultVarietyUrl(nodeSpecies)).then((r) => r.json())
+        resolved.set(node.species.name, {
           apiName: node.species.name,
-          name: getFrenchName(speciesRes.names),
-          sprite: pokeRes.sprites.other['official-artwork'].front_default,
-          condition,
-        }
+          name: getFrenchName(nodeSpecies.names),
+          sprite: nodePokemon.sprites.other['official-artwork'].front_default,
+          condition: node.evolution_details.length ? await describeNodeCondition(node) : '',
+        })
       }),
     )
 
-    const parentNode = findParentNode(evoChainData.chain, data.species.name)
-    let previousEvolution: EvoLink | null = null
-    if (parentNode) {
-      const prevSpeciesRes = await fetch(parentNode.species.url).then((r) => r.json())
-      const prevPokeRes = await fetch(getDefaultVarietyUrl(prevSpeciesRes)).then((r) => r.json())
-      previousEvolution = {
-        apiName: parentNode.species.name,
-        name: getFrenchName(prevSpeciesRes.names),
-        sprite: prevPokeRes.sprites.other['official-artwork'].front_default,
-      }
+    const evolutionLine: EvolutionStage[] = []
+    let stage: any[] = [evoChainData.chain]
+    while (stage.length) {
+      const members = stage.filter(inHisui).map((n) => resolved.get(n.species.name)!)
+      if (members.length) evolutionLine.push(members)
+      stage = stage.flatMap((n) => n.evolves_to)
     }
+
+    const evolutions = nextNodes
+      .filter(inHisui)
+      .map((node: any) => resolved.get(node.species.name)!)
+
+    const parentNode = findParentNode(evoChainData.chain, data.species.name)
+    const parentInfo = parentNode ? resolved.get(parentNode.species.name) : undefined
+    const previousEvolution: EvoLink | null = parentInfo
+      ? { apiName: parentInfo.apiName, name: parentInfo.name, sprite: parentInfo.sprite }
+      : null
+    const evolvedFromCondition = resolved.get(data.species.name)?.condition ?? ''
 
     pokemon.value = {
       name: frenchName,
@@ -502,6 +549,14 @@ async function fetchPokemon(name: string) {
       })),
       evolutions: evolutions,
       previousEvolution: previousEvolution,
+      evolvedFromCondition,
+      evolutionLine,
+      apiName: data.species.name,
+      hisuiNumber: entries.value.find((e) => e.apiName === name)?.entryNumber ?? null,
+      rarity: getRarity(speciesData),
+      height: data.height / 10,
+      weight: data.weight / 10,
+      femaleRatio: speciesData.gender_rate < 0 ? null : speciesData.gender_rate / 8,
       locations: HISUI_LOCATIONS[name] ?? [],
       genus: getFrenchGenus(speciesData.genera),
       description: getFrenchDescription(speciesData.flavor_text_entries),

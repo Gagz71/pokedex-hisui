@@ -5,7 +5,11 @@
 //    « … de Hisui » pour les formes régionales) : zones, sous-zones, Barons,
 //    distorsions spatio-temporelles, rencontres uniques ;
 //  - Bulbapedia pour les espèces à formes multiples que Poképédia n'affiche
-//    pas (Cheniti, Sancoki, Bargantua, Giratina, Shaymin, génies...) ;
+//    pas (Cheniti, Sancoki, Bargantua, Giratina, Shaymin, génies...), pour
+//    les zones que Poképédia oublie (ajoutées en « Rencontre sauvage »,
+//    « Distorsions » ou « Invasions massives ») et pour les Barons à
+//    emplacement fixe (champ alphas, avec le nom français du lieu repris des
+//    pages de lieux de Bulbapedia ; Poképédia n'en recense qu'une partie) ;
 //  - quelques descriptions rédigées à la main, gardées quand elles sont plus
 //    précises (ex. Voltorbe « dans des caisses »).
 // Les pokémon qu'on n'obtient que par évolution reprennent les zones de leur
@@ -17,10 +21,16 @@
 export interface LocationEntry {
   region: string
   details: string
+  // Emplacements des Barons fixes dans cette zone (niveau quand il est connu).
+  // Les Barons des invasions massives ne sont pas listés.
+  alphas?: string[]
 }
 
 export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
-  abomasnow: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  abomasnow: [
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Étendue Polaire'] },
+  ],
   abra: [
     { region: 'Plaines Obsidiennes', details: 'Plaine Littorella · Rive Filevent' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
@@ -31,11 +41,16 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   alakazam: [
-    { region: 'Plaines Obsidiennes', details: 'Plaine Littorella (Baron, niv. 60)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Plaine Littorella (niv. 60)'],
+    },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage · Invasions massives' },
   ],
   ambipom: [
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Crique Paisible'] },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
@@ -45,7 +60,10 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   avalugg: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
   azelf: [{ region: 'Marais Carmin', details: 'Lac Courage, rencontre unique (niv. 70)' }],
-  barboach: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  barboach: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+  ],
   basculegion: [
     { region: 'Côte Lazuli', details: 'En faisant évoluer Bargantua' },
     { region: 'Contrefort Couronné', details: 'En faisant évoluer Bargantua' },
@@ -65,7 +83,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   bibarel: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Digue de l'Estuaire · Digue de l'Estuaire (Baron, niv. 16)",
+      details: "Digue de l'Estuaire",
+      alphas: ["Digue de l'Estuaire (niv. 16)"],
     },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
@@ -80,7 +99,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Terres Immaculées', details: 'Zones ouvertes, invasions massives' },
   ],
   blissey: [
-    { region: 'Plaines Obsidiennes', details: "Chute d'Obsidienne (Baron, niv. 62)" },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ["Chute d'Obsidienne (niv. 62)"],
+    },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   bonsly: [
@@ -89,10 +113,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   braviary: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
   bronzong: [
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Falaise Calade'] },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage · Temple de Frimapic' },
   ],
   bronzor: [
+    { region: 'Marais Carmin', details: 'Invasions massives' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage · Temple de Frimapic' },
   ],
@@ -112,21 +138,26 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Arbres qui tremblent (Cape Plante)' },
     { region: 'Marais Carmin', details: 'Arbres qui tremblent (Cape Sable)' },
     { region: 'Côte Lazuli', details: 'Arbres qui tremblent (Cape Déchet)' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   carnivine: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Lande Herbacoton'] },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Source Reculée'] },
   ],
   cascoon: [{ region: 'Plaines Obsidiennes', details: 'Champ Flora · Forêt Lointaine' }],
   chansey: [
     { region: 'Plaines Obsidiennes', details: "Chute d'Obsidienne" },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ["Presqu'île Tombolo"] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  chatot: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  chatot: [
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+  ],
   cherrim: [
     { region: 'Plaines Obsidiennes', details: 'Forêt Lointaine' },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -140,15 +171,23 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   chimchar: [{ region: 'Plaines Obsidiennes', details: 'Île Rosa Rugosa · Plateau Cer-Mont' }],
   chimecho: [
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
-    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Lac Savoir'] },
   ],
   chingling: [
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  clefable: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
-  clefairy: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
-  cleffa: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
+  clefable: [
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Source Féérique'] },
+  ],
+  clefairy: [
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+  ],
+  cleffa: [
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+  ],
   combee: [
     { region: 'Plaines Obsidiennes', details: 'Bocage Agité · Forêt Lointaine · Île Rosa Rugosa' },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -162,7 +201,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  crobat: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  crobat: [
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Grotte des Égarés'] },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
+  ],
   cyndaquil: [
     { region: 'Rusti-Cité', details: 'Pokémon de départ, offert au Siège du Groupe Galaxie' },
     {
@@ -193,7 +236,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Temple de Sinnoh, rencontre unique (niv. 65)' },
   ],
   drapion: [
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Plage Ginkgo'] },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
   ],
   drifblim: [
@@ -216,11 +260,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   dusknoir: [
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Rive des Revenants'] },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
   ],
   duskull: [
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   dustox: [
@@ -229,17 +275,17 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   eevee: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles · Val Ferrache' },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
-    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage · Distorsions spatio-temporelles' },
+    { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
+    { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   electabuzz: [
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
-    { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage · Distorsions spatio-temporelles' },
   ],
   electivire: [
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Passage des Nuages'] },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   electrode: [{ region: 'Contrefort Couronné', details: 'En faisant évoluer Voltorbe de Hisui' }],
@@ -247,7 +293,9 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  empoleon: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  empoleon: [
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Plage Long-des-Îles'] },
+  ],
   enamorus: [{ region: 'Marais Carmin', details: 'Rencontre unique (Forme Avatar)' }],
   espeon: [{ region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' }],
   finneon: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
@@ -256,23 +304,35 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
   ],
   floatzel: [
-    { region: 'Plaines Obsidiennes', details: 'Pont Rocheux · Pont Rocheux (Baron, niv. 31)' },
+    { region: 'Plaines Obsidiennes', details: 'Pont Rocheux', alphas: ['Pont Rocheux (niv. 31)'] },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
   ],
-  froslass: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage · Temple de Frimapic' }],
+  froslass: [
+    {
+      region: 'Terres Immaculées',
+      details: 'Rencontre sauvage · Temple de Frimapic',
+      alphas: ['Chambre des Piliers'],
+    },
+  ],
   gabite: [
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Falaise Calade'] },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   gallade: [
     {
       region: 'Terres Immaculées',
-      details: 'Rencontre sauvage · Temple de Frimapic, Baron (niv. 70)',
+      details: 'Rencontre sauvage',
+      alphas: ['Temple de Frimapic (niv. 70)'],
     },
   ],
-  garchomp: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
-  gardevoir: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  garchomp: [
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ["Pente de l'Avalanche"] },
+  ],
+  gardevoir: [
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Rocher Esprit'] },
+  ],
   gastly: [
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
@@ -283,9 +343,18 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
       region: 'Plaines Obsidiennes',
       details: 'Rencontre sauvage, invasions massives (Mer Occident)',
     },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage, Baron, invasions massives (Mer Orient)' },
+    {
+      region: 'Côte Lazuli',
+      details: 'Rencontre sauvage, invasions massives (Mer Orient)',
+      alphas: ['Havre des Algues'],
+    },
   ],
-  gengar: [{ region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' }],
+  gengar: [
+    { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
+  ],
   geodude: [
     { region: 'Plaines Obsidiennes', details: 'Plateau Cer-Mont · Pont Rocheux · Tunnel de Fer' },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -300,31 +369,57 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Rencontre unique dans la Grotte Retour (Forme Originelle)' },
   ],
   glaceon: [{ region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' }],
-  glalie: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage · Temple de Frimapic' }],
+  glalie: [
+    {
+      region: 'Terres Immaculées',
+      details: 'Rencontre sauvage · Temple de Frimapic',
+      alphas: ['Étendue Polaire'],
+    },
+  ],
   glameow: [
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   gligar: [
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Temple Céleste'] },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  gliscor: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
+  gliscor: [
+    {
+      region: 'Contrefort Couronné',
+      details: 'Rencontre sauvage',
+      alphas: ['Grotte Préhistorique'],
+    },
+  ],
   golbat: [
-    { region: 'Plaines Obsidiennes', details: 'Tunnel de Fer · Tunnel de Fer (Baron, niv. 35)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Tunnel de Fer',
+      alphas: ['Tunnel de Fer (niv. 35)'],
+    },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Temple de Frimapic' },
   ],
   golduck: [
+    { region: 'Plaines Obsidiennes', details: 'Rencontre sauvage' },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Lagune des Bains'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  golem: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
+  golem: [
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Mont des Gringoles'] },
+  ],
   goodra: [
-    { region: 'Plaines Obsidiennes', details: 'Lac Vérité, Baron (niv. 58)' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Lac Vérité (niv. 58)'],
+    },
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Ancienne Carrière'] },
   ],
   goomy: [
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -333,7 +428,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   graveler: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Bocage Agité (Baron, niv. 30) · Plaine Littorella · Tunnel de Fer',
+      details: 'Plaine Littorella · Tunnel de Fer',
+      alphas: ['Bocage Agité (niv. 30)', "Chute d'Obsidienne"],
     },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
@@ -347,10 +443,10 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   gyarados: [
     {
       region: 'Plaines Obsidiennes',
-      details:
-        "Lac Vérité · Lac Vérité, Baron (niv. 60) · Chute d'Obsidienne · Lac Vérité (Baron, niv. 60)",
+      details: "Lac Vérité · Chute d'Obsidienne",
+      alphas: ['Lac Vérité (niv. 60)'],
     },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Main de Sable'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   happiny: [
@@ -368,7 +464,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   heatran: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
   heracross: [
-    { region: 'Plaines Obsidiennes', details: 'Bocage Agité (Baron, niv. 45)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Bocage Agité (niv. 45)'],
+    },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
@@ -377,14 +477,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   hippowdon: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Marais Bouchebée'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   honchkrow: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Col Mer-de-Nuages'] },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
   ],
-  infernape: [{ region: 'Plaines Obsidiennes', details: 'Île Rosa Rugosa (Baron, niv. 65)' }],
+  infernape: [
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Île Rosa Rugosa (niv. 65)'],
+    },
+  ],
   jolteon: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' }],
   kadabra: [
     { region: 'Plaines Obsidiennes', details: 'Plaine Littorella' },
@@ -410,7 +516,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   kricketune: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Cellier Champêtre · Digue de l'Estuaire (Baron, niv. 30)",
+      details: 'Cellier Champêtre',
+      alphas: ["Digue de l'Estuaire (niv. 30)", 'Plateau Cer-Mont'],
     },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
   ],
@@ -418,7 +525,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   leafeon: [{ region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' }],
   lickilicky: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Ruines Brumeuses'] },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   lickitung: [
@@ -428,16 +535,24 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   lilligant: [{ region: 'Marais Carmin', details: 'En faisant évoluer Chlorobule' }],
   lopunny: [
-    { region: 'Plaines Obsidiennes', details: 'Forêt Lointaine (Baron, niv. 40)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Forêt Lointaine (niv. 40)'],
+    },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  lucario: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
-  lumineon: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  lucario: [
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ["Chute d'Oglacé"] },
+  ],
+  lumineon: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Havre des Algues'] }],
   luxio: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Champ Flora · Champ Flora (Baron, niv. 40) · Plaine Littorella · Tunnel de Fer',
+      details: 'Champ Flora · Plaine Littorella · Tunnel de Fer',
+      alphas: ['Champ Flora (niv. 40)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
@@ -445,12 +560,15 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   luxray: [
     { region: 'Plaines Obsidiennes', details: 'Plaine Littorella' },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Parvis des Prières'] },
   ],
-  machamp: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  machamp: [
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ["Sentier de l'Arène"] },
+  ],
   machoke: [
     { region: 'Plaines Obsidiennes', details: "Chute d'Obsidienne" },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Plage Ginkgo'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
@@ -462,23 +580,33 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   magby: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
   magikarp: [
-    { region: 'Plaines Obsidiennes', details: "Lac Vérité · Chute d'Obsidienne" },
+    {
+      region: 'Plaines Obsidiennes',
+      details: "Lac Vérité · Chute d'Obsidienne",
+      alphas: ['Tunnel de Fer'],
+    },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   magmar: [
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
   ],
-  magmortar: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' }],
+  magmortar: [
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
+  ],
   magnemite: [{ region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles (rare)' }],
   magneton: [{ region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles (rare)' }],
   magnezone: [
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles (rare)' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  mamoswine: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  mamoswine: [
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Glacier Séracrawl'] },
+  ],
   manaphy: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  mantine: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  mantine: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Baie Sérénité'] }],
   mantyke: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
   mesprit: [
     {
@@ -486,21 +614,28 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
       details: 'Lac Vérité, rencontre unique (niv. 70) · Lac Vérité (rencontre unique (niv. 70))',
     },
   ],
-  'mime-jr': [{ region: 'Plaines Obsidiennes', details: 'Plaine Littorella · Val Ferrache' }],
+  'mime-jr': [
+    { region: 'Plaines Obsidiennes', details: 'Plaine Littorella · Val Ferrache' },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+  ],
   misdreavus: [
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
-  mismagius: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
+  mismagius: [
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Col Pierlevé'] },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
+  ],
   monferno: [{ region: 'Plaines Obsidiennes', details: 'Île Rosa Rugosa' }],
   mothim: [
     { region: 'Plaines Obsidiennes', details: 'Bocage Agité' },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Chemin de la Source'] },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Forêt des Égarés'] },
   ],
   'mr-mime': [
     { region: 'Plaines Obsidiennes', details: 'Plaine Littorella' },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
   ],
   munchlax: [
     { region: 'Plaines Obsidiennes', details: 'Plateau Cer-Mont' },
@@ -510,15 +645,19 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
   ],
-  ninetales: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  ninetales: [
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Île Crache-Feu'] },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
+  ],
   nosepass: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
   octillery: [
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ["Plage de l'Errance"] },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
   ],
   onix: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Hameau Diamant'] },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   oshawott: [
@@ -530,9 +669,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   overqwil: [
     { region: 'Plaines Obsidiennes', details: 'En faisant évoluer Qwilfish de Hisui' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Lac Courage'] },
     { region: 'Côte Lazuli', details: 'En faisant évoluer Qwilfish de Hisui' },
   ],
-  pachirisu: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  pachirisu: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Marais Bouchebée'] },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
+  ],
   palkia: [
     { region: 'Contrefort Couronné', details: 'Temple de Sinnoh, rencontre unique (niv. 65)' },
   ],
@@ -543,7 +686,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   parasect: [
-    { region: 'Plaines Obsidiennes', details: 'Cellier Champêtre (Baron, niv. 30)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Cellier Champêtre (niv. 30)'],
+    },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
@@ -560,14 +707,26 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
-  piloswine: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  piloswine: [
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ["Sentier de l'Arène"] },
+  ],
   piplup: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  ponyta: [{ region: 'Plaines Obsidiennes', details: 'Val Ferrache' }],
+  ponyta: [
+    { region: 'Plaines Obsidiennes', details: 'Val Ferrache' },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+  ],
   porygon: [{ region: 'Marais Carmin', details: 'Distorsions spatio-temporelles (rare)' }],
   'porygon-z': [{ region: 'Marais Carmin', details: 'Distorsions spatio-temporelles (rare)' }],
   porygon2: [{ region: 'Marais Carmin', details: 'Distorsions spatio-temporelles (rare)' }],
   prinplup: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  probopass: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
+  probopass: [
+    {
+      region: 'Contrefort Couronné',
+      details: 'Rencontre sauvage',
+      alphas: ['Grotte Préhistorique'],
+    },
+  ],
   psyduck: [
     { region: 'Plaines Obsidiennes', details: 'Forêt Lointaine' },
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -575,7 +734,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   purugly: [
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Cap du Voile'] },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   quilava: [
@@ -586,10 +745,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   qwilfish: [
     { region: 'Plaines Obsidiennes', details: 'Île Rosa Rugosa' },
-    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Plage Long-des-Îles'] },
   ],
   raichu: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ["Plaine d'Or"] },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   ralts: [
@@ -598,7 +758,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   rampardos: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles (rare)' }],
   rapidash: [
-    { region: 'Plaines Obsidiennes', details: 'Val Ferrache · Val Ferrache (Baron, niv. 40)' },
+    { region: 'Plaines Obsidiennes', details: 'Val Ferrache', alphas: ['Val Ferrache (niv. 40)'] },
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   regigigas: [
@@ -611,19 +772,25 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   rhyhorn: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Lisière du Hameau'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   rhyperior: [
+    { region: 'Marais Carmin', details: 'Invasions massives' },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Parvis des Prières'] },
   ],
-  riolu: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  riolu: [
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
+  ],
   roselia: [
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  roserade: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  roserade: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Col Mer-de-Nuages'] },
+  ],
   rotom: [{ region: 'Contrefort Couronné', details: 'Rencontre sauvage' }],
   rowlet: [
     { region: 'Rusti-Cité', details: 'Pokémon de départ, offert au Siège du Groupe Galaxie' },
@@ -643,12 +810,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   scyther: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Arène du Grand Arbre · Arène du Grand Arbre (Baron, niv. 42)',
+      details: 'Arène du Grand Arbre',
+      alphas: ['Arène du Grand Arbre (niv. 42)'],
     },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   sealeo: [
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
@@ -670,21 +839,34 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Champ Flora · Colline Ambition · Tunnel de Fer' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  silcoon: [{ region: 'Plaines Obsidiennes', details: 'Champ Flora · Forêt Lointaine' }],
-  skorupi: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  silcoon: [
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Champ Flora · Forêt Lointaine',
+      alphas: ['Val Ferrache'],
+    },
+  ],
+  skorupi: [
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+  ],
   skuntank: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Marais Carlate'] },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   sliggoo: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ["Île de l'Épreuve"] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   sneasel: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles (forme classique)' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage (forme de Hisui)' },
-    { region: 'Terres Immaculées', details: 'Rencontre sauvage (forme de Hisui)' },
+    {
+      region: 'Terres Immaculées',
+      details: 'Rencontre sauvage (forme de Hisui)',
+      alphas: ['Glacier Séracrawl'],
+    },
   ],
   sneasler: [
     { region: 'Plaines Obsidiennes', details: 'En faisant évoluer Farfuret de Hisui' },
@@ -692,18 +874,31 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Terres Immaculées', details: 'En faisant évoluer Farfuret de Hisui' },
   ],
   snorlax: [
-    { region: 'Plaines Obsidiennes', details: 'Plaine Littorella (Baron, niv. 45)' },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Uniquement en Baron',
+      alphas: ['Plaine Littorella (niv. 45)'],
+    },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   snorunt: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
-  snover: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
-  spheal: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  spiritomb: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  snover: [
+    { region: 'Contrefort Couronné', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
+  ],
+  spheal: [
+    { region: 'Plaines Obsidiennes', details: 'Invasions massives' },
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+  ],
+  spiritomb: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Ruines Brumeuses'] },
+  ],
   stantler: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plateau Cer-Mont · Plateau Cer-Mont (Baron, niv. 42)',
+      details: 'Plateau Cer-Mont',
+      alphas: ['Plateau Cer-Mont (niv. 42)'],
     },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
@@ -716,8 +911,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   staravia: [
     {
       region: 'Plaines Obsidiennes',
-      details:
-        "Cellier Champêtre · Digue de l'Estuaire · Île Rosa Rugosa · Plaine Littorella · Rive Filevent (Baron, niv. 32)",
+      details: "Cellier Champêtre · Digue de l'Estuaire · Île Rosa Rugosa · Plaine Littorella",
+      alphas: ['Rive Filevent (niv. 32)'],
     },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
   ],
@@ -730,7 +925,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   steelix: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage', alphas: ['Sentier Céleste'] },
   ],
   stunky: [
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
@@ -740,7 +936,10 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
-  swinub: [{ region: 'Terres Immaculées', details: 'Rencontre sauvage' }],
+  swinub: [
+    { region: 'Marais Carmin', details: 'Invasions massives' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Étendue Polaire'] },
+  ],
   sylveon: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
@@ -750,7 +949,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
   ],
   tangrowth: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Marais Bouchebée'] },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
@@ -759,11 +958,16 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   tentacool: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  tentacruel: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
+  tentacruel: [
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Arche Poissigrand'] },
+  ],
   thundurus: [
     { region: 'Côte Lazuli', details: "Rencontre unique, par temps d'orage (Forme Avatar)" },
   ],
-  togekiss: [{ region: 'Plaines Obsidiennes', details: 'Lac Vérité' }],
+  togekiss: [
+    { region: 'Plaines Obsidiennes', details: 'Lac Vérité' },
+    { region: 'Côte Lazuli', details: 'Invasions massives' },
+  ],
   togepi: [
     { region: 'Marais Carmin', details: 'Rencontre sauvage' },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
@@ -778,10 +982,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
       details: 'Rencontre unique, par temps de blizzard (Forme Avatar)',
     },
   ],
-  torterra: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  torterra: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ["Île de l'Épreuve"] },
+  ],
   toxicroak: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ["Île de l'Épreuve"] },
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
@@ -801,30 +1007,44 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   ],
   ursaring: [
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    {
+      region: 'Marais Carmin',
+      details: 'Rencontre sauvage',
+      alphas: ['Marais Bouchebée', 'Arène Ursa'],
+    },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   uxie: [{ region: 'Terres Immaculées', details: 'Lac Savoir, rencontre unique (niv. 70)' }],
   vaporeon: [{ region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' }],
-  vespiquen: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  vespiquen: [
+    { region: 'Plaines Obsidiennes', details: 'Rencontre sauvage', alphas: ['Bocage Agité'] },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Lande Herbacoton'] },
+  ],
   voltorb: [
     {
       region: 'Contrefort Couronné',
       details: 'Dans des caisses, invasions massives (forme de Hisui)',
     },
   ],
-  vulpix: [{ region: 'Côte Lazuli', details: 'Rencontre sauvage' }],
-  walrein: [
+  vulpix: [
     { region: 'Côte Lazuli', details: 'Rencontre sauvage' },
+    { region: 'Terres Immaculées', details: 'Invasions massives' },
+  ],
+  walrein: [
+    { region: 'Côte Lazuli', details: 'Rencontre sauvage', alphas: ['Plage Ginkgo'] },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   weavile: [{ region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' }],
-  whiscash: [{ region: 'Marais Carmin', details: 'Rencontre sauvage' }],
+  whiscash: [
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Lac Courage'] },
+    { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
+  ],
   wormadam: [
     { region: 'Plaines Obsidiennes', details: 'Arbres qui tremblent (Cape Plante)' },
     { region: 'Marais Carmin', details: 'Arbres qui tremblent (Cape Sable)' },
     { region: 'Côte Lazuli', details: 'Arbres qui tremblent (Cape Déchet)' },
     { region: 'Contrefort Couronné', details: 'Arbres qui tremblent' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage' },
   ],
   wurmple: [
     { region: 'Plaines Obsidiennes', details: 'Champ Flora · Forêt Lointaine · Val Ferrache' },
@@ -840,11 +1060,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   yanmega: [
-    { region: 'Marais Carmin', details: 'Rencontre sauvage' },
+    { region: 'Marais Carmin', details: 'Rencontre sauvage', alphas: ['Champ Bourdonne'] },
     { region: 'Contrefort Couronné', details: 'Rencontre sauvage' },
   ],
   zoroark: [
-    { region: 'Terres Immaculées', details: 'Rencontre sauvage · Lac Savoir, Baron (niv. 58)' },
+    { region: 'Terres Immaculées', details: 'Rencontre sauvage', alphas: ['Lac Savoir (niv. 58)'] },
   ],
   zorua: [
     { region: 'Terres Immaculées', details: 'Zones ouvertes, invasions massives (forme de Hisui)' },
