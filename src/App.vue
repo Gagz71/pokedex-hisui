@@ -4,6 +4,7 @@ import BookCover from './components/BookCover.vue'
 import PokemonArtCard from './components/PokemonArtCard.vue'
 import PokemonInfoCard from './components/PokemonInfoCard.vue'
 import PokedexIndex from './components/PokedexIndex.vue'
+import CreditsPanel from './components/CreditsPanel.vue'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
 import { TYPE_COLORS } from './data/typeColors'
 
@@ -17,6 +18,7 @@ const isSortMenuOpen = ref(false)
 
 const typeFilter = ref<string | null>(null)
 const isTypeMenuOpen = ref(false)
+const isCreditsOpen = ref(false)
 
 function setTypeFilter(slug: string | null) {
   typeFilter.value = slug
@@ -661,7 +663,12 @@ function goBack() {
           </div>
         </div>
 
-        <PokedexIndex v-if="!selectedName" :entries="firstHalf" @select="handleSelect" />
+        <template v-if="!selectedName">
+          <PokedexIndex :entries="firstHalf" @select="handleSelect" />
+          <button class="credits-link" @click="isCreditsOpen = true">
+            Projet de fan non officiel · Crédits
+          </button>
+        </template>
         <template v-else>
           <p v-if="isLoading" class="status">Chargement...</p>
           <p v-else-if="error" class="status">{{ error }}</p>
@@ -705,6 +712,7 @@ function goBack() {
       <div class="spine"></div>
 
       <BookCover :isOpen="isOpen" @toggle="isOpen = !isOpen" />
+      <CreditsPanel :open="isCreditsOpen" @close="isCreditsOpen = false" />
     </div>
   </div>
 </template>
@@ -822,6 +830,22 @@ function goBack() {
 }
 .close-tab.prev-evo:hover {
   color: #1a3d1a;
+}
+.credits-link {
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: 10px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.credits-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 .status {
   font-size: 13px;
