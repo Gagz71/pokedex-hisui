@@ -14,10 +14,17 @@ const emit = defineEmits<{
       <span class="dot a"></span>
       <span class="dot b"></span>
     </div>
-    <img class="pokeball" src="/Pokeball1.png" alt="Pokeball" />
-    <div class="title">Pokédex Hisui</div>
+    <div class="hero">
+      <div class="pokeball-ring">
+        <img class="pokeball" src="/Pokeball1.png" alt="Poké Ball" />
+      </div>
+      <h1 class="title">Pokédex Hisui</h1>
+      <div class="trim"></div>
+      <p class="subtitle">Pokédex pour <b>Légendes Pokémon&nbsp;: Arceus</b></p>
+    </div>
     <div class="groove"></div>
     <p class="hint">Cliquer pour ouvrir</p>
+    <span class="signature">© 2026 MDS Digital</span>
   </div>
 </template>
 
@@ -76,30 +83,72 @@ const emit = defineEmits<{
   box-shadow: 0 0 5px rgba(134, 239, 172, 0.9);
 }
 
-.pokeball {
-  width: 56px;
-  height: 56px;
-  margin-top: 8px;
+/* Bloc central : la Poké Ball prend l'essentiel de la couverture */
+.hero {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.pokeball-ring {
+  width: min(62%, 52vh);
+  aspect-ratio: 1;
+  padding: 10px;
   border-radius: 50%;
-  object-fit: cover;
+  background: rgba(0, 0, 0, 0.18);
   box-shadow:
-    0 0 0 4px rgba(255, 255, 255, 0.15),
-    0 0 0 6px rgba(0, 0, 0, 0.25);
-  background: rgba(0, 0, 0, 0.15);
+    0 0 0 5px rgba(255, 255, 255, 0.14),
+    0 0 0 9px rgba(0, 0, 0, 0.22),
+    0 22px 40px -12px rgba(0, 0, 0, 0.55);
+}
+.pokeball {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
 }
 
 .title {
-  margin-top: 14px;
+  margin: 12px 0 0;
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 15px;
+  font-size: clamp(30px, 4.4vw, 50px);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
   color: #fff;
   text-align: center;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.trim {
+  width: 38%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cover-trim);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 85%;
+  font-size: clamp(13px, 1.5vw, 17px);
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+  text-align: center;
+}
+.subtitle b {
+  font-weight: 700;
+  color: var(--cover-trim);
+  white-space: nowrap;
 }
 
 .groove {
-  margin-top: auto;
   width: 65%;
   height: 3px;
   border-radius: 2px;
@@ -114,5 +163,17 @@ const emit = defineEmits<{
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.75);
+}
+
+/* Signature discrète, coin inférieur droit */
+.signature {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
 }
 </style>
