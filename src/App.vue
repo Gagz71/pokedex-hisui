@@ -8,6 +8,8 @@ import CreditsPanel from './components/CreditsPanel.vue'
 import ProgressToggles from './components/ProgressToggles.vue'
 import TeamStrip from './components/TeamStrip.vue'
 import SyncPanel from './components/SyncPanel.vue'
+import ItemPanel from './components/ItemPanel.vue'
+import { EVOLUTION_ITEMS } from './data/evolutionItems'
 import { useSyncStore } from './stores/sync'
 import { useProgressStore, alphaKey, otherAlphaKey } from './stores/progress'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
@@ -140,6 +142,39 @@ const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: str
   },
 ]
 const STATUS_FILTERS = STATUS_GROUPS.flatMap((g) => g.filters)
+// --- Filtre Objet : Pokémon qu'un objet d'évolution fait évoluer
+const itemFilter = ref<string | null>(null)
+const isItemMenuOpen = ref(false)
+const ITEM_GROUPS = (['Pierres', 'Objets spéciaux', 'Propres à Hisui'] as const).map((title) => ({
+  title,
+  items: Object.entries(EVOLUTION_ITEMS)
+    .filter(([, item]) => item.category === title)
+    .map(([slug, item]) => ({ slug, ...item }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
+}))
+function setItemFilter(slug: string | null) {
+  itemFilter.value = slug
+  isItemMenuOpen.value = false
+}
+// « → Aquali », « → Dimoret (forme classique, de nuit) » à côté de chaque
+// Pokémon concerné par l'objet choisi.
+const itemNotes = computed<Record<string, string>>(() => {
+  const item = itemFilter.value ? EVOLUTION_ITEMS[itemFilter.value] : undefined
+  const notes: Record<string, string[]> = {}
+  for (const use of item?.uses ?? []) {
+    ;(notes[use.from] ??= []).push(`→ ${use.toName}${use.note ? ` (${use.note})` : ''}`)
+  }
+  return Object.fromEntries(Object.entries(notes).map(([api, list]) => [api, list.join(' · ')]))
+})
+// Depuis l'onglet Évolution d'une fiche : retour à l'index filtré sur l'objet.
+function handleItemFilter(slug: string) {
+  itemFilter.value = slug
+  typeFilter.value = null
+  statusFilter.value = null
+  searchQuery.value = ''
+  selectedName.value = null
+}
+
 const statusFilter = ref<StatusFilter | null>(null)
 const isStatusMenuOpen = ref(false)
 function setStatusFilter(value: StatusFilter | null) {
@@ -200,6 +235,10 @@ const filteredEntries = computed(() => {
   let list = sortedEntries.value
   if (typeFilter.value) {
     list = list.filter((e) => e.typeSlugs.includes(typeFilter.value as string))
+  }
+  if (itemFilter.value) {
+    const notes = itemNotes.value
+    list = list.filter((e) => e.apiName in notes)
   }
   if (statusFilter.value) {
     const filter = statusFilter.value
@@ -310,6 +349,7 @@ interface EvoLink {
 }
 interface EvolutionInfo extends EvoLink {
   condition: string
+  itemSlug?: string // objet d'évolution (lien vers le filtre Objet)
 }
 // Un stade de la lignée : plusieurs Pokémon quand la chaîne se ramifie
 // (Évoli, Farfuret...). condition = comment on obtient ce Pokémon depuis le
@@ -326,6 +366,7 @@ interface PokemonData {
   evolutions: EvolutionInfo[]
   previousEvolution: EvoLink | null
   evolvedFromCondition: string
+  evolvedFromItem?: string
   evolutionLine: EvolutionStage[]
   apiName: string
   hisuiNumber: number | null
@@ -430,6 +471,16 @@ function getDefaultVarietyUrl(speciesData: any): string {
   const variety =
     hisuiVariety ?? speciesData.varieties.find((v: any) => v.is_default) ?? speciesData.varieties[0]
   return variety.pokemon.url
+}
+
+// Objet d'évolution de Légendes Arceus entre deux Pokémon, s'il y en a un.
+function findItemUse(from: string | undefined, to: string) {
+  if (!from) return undefined
+  for (const [slug, item] of Object.entries(EVOLUTION_ITEMS)) {
+    const use = item.uses.find((u) => u.from === from && u.to === to)
+    if (use) return { slug, name: item.name, note: use.note }
+  }
+  return undefined
 }
 
 // Condition pour obtenir ce nœud depuis le stade précédent. On privilégie les
@@ -640,9 +691,13 @@ async function fetchPokemon(name: string) {
     const hisuiNames = new Set(entries.value.map((e) => e.apiName))
     const inHisui = (node: any) => hisuiNames.size === 0 || hisuiNames.has(node.species.name)
     const chainNodes: any[] = []
+    const parentOf = new Map<string, string>()
     const collect = (node: any) => {
       chainNodes.push(node)
-      node.evolves_to.forEach(collect)
+      for (const child of node.evolves_to) {
+        parentOf.set(child.species.name, node.species.name)
+        collect(child)
+      }
     }
     collect(evoChainData.chain)
     const resolved = new Map<string, EvolutionInfo>()
@@ -650,11 +705,19 @@ async function fetchPokemon(name: string) {
       chainNodes.filter(inHisui).map(async (node: any) => {
         const nodeSpecies = await fetch(node.species.url).then((r) => r.json())
         const nodePokemon = await fetch(getDefaultVarietyUrl(nodeSpecies)).then((r) => r.json())
+        // Évolution par objet : on suit les règles de Légendes Arceus (voir
+        // evolutionItems.ts) plutôt que celles des autres jeux.
+        const itemUse = findItemUse(parentOf.get(node.species.name), node.species.name)
         resolved.set(node.species.name, {
           apiName: node.species.name,
           name: getFrenchName(nodeSpecies.names),
           sprite: nodePokemon.sprites.other['official-artwork'].front_default,
-          condition: node.evolution_details.length ? await describeNodeCondition(node) : '',
+          condition: itemUse
+            ? `Utiliser l'objet : ${itemUse.name}${itemUse.note ? ` (${itemUse.note})` : ''}`
+            : node.evolution_details.length
+              ? await describeNodeCondition(node)
+              : '',
+          itemSlug: itemUse?.slug,
         })
       }),
     )
@@ -677,6 +740,7 @@ async function fetchPokemon(name: string) {
       ? { apiName: parentInfo.apiName, name: parentInfo.name, sprite: parentInfo.sprite }
       : null
     const evolvedFromCondition = resolved.get(data.species.name)?.condition ?? ''
+    const evolvedFromItem = resolved.get(data.species.name)?.itemSlug
 
     pokemon.value = {
       name: frenchName,
@@ -691,6 +755,7 @@ async function fetchPokemon(name: string) {
       evolutions: evolutions,
       previousEvolution: previousEvolution,
       evolvedFromCondition,
+      evolvedFromItem,
       evolutionLine,
       apiName: data.species.name,
       hisuiNumber: entries.value.find((e) => e.apiName === name)?.entryNumber ?? null,
@@ -808,6 +873,31 @@ function goBack() {
           </div>
 
           <div class="sort-menu">
+            <button class="sort-toggle" @click="isItemMenuOpen = !isItemMenuOpen">
+              {{ itemFilter ? EVOLUTION_ITEMS[itemFilter]?.name : 'Objet' }}
+              <span class="arrow" :class="{ open: isItemMenuOpen }">▾</span>
+            </button>
+            <ul class="sort-options item-options" v-if="isItemMenuOpen">
+              <li @click="setItemFilter(null)" :class="{ active: !itemFilter }">
+                Tous les Pokémon
+              </li>
+              <template v-for="group in ITEM_GROUPS" :key="group.title">
+                <li class="menu-group">{{ group.title }}</li>
+                <li
+                  v-for="item in group.items"
+                  :key="item.slug"
+                  @click="setItemFilter(item.slug)"
+                  :class="{ active: itemFilter === item.slug }"
+                >
+                  <img v-if="item.sprite" :src="item.sprite" alt="" class="item-option-sprite" />
+                  <span v-else class="item-option-sprite">{{ item.icon }}</span>
+                  {{ item.name }}
+                </li>
+              </template>
+            </ul>
+          </div>
+
+          <div class="sort-menu">
             <button class="sort-toggle" @click="isSortMenuOpen = !isSortMenuOpen">
               Tri <span class="arrow" :class="{ open: isSortMenuOpen }">▾</span>
             </button>
@@ -821,8 +911,9 @@ function goBack() {
         </div>
 
         <template v-if="!selectedName">
-          <TeamStrip @select="handleSelect" />
-          <p v-if="entries.length" class="progress-summary">
+          <ItemPanel v-if="itemFilter" :slug="itemFilter" @close="setItemFilter(null)" />
+          <TeamStrip v-else @select="handleSelect" />
+          <p v-if="entries.length && !itemFilter" class="progress-summary">
             <span
               ><b class="c-caught">●</b> {{ hisuiCounts.caught }}/{{
                 entries.length
@@ -845,7 +936,7 @@ function goBack() {
             >
             <span v-if="hisuiCounts.shiny"><b class="c-shiny">✦</b> {{ hisuiCounts.shiny }}</span>
           </p>
-          <PokedexIndex :entries="firstHalf" @select="handleSelect" />
+          <PokedexIndex :entries="firstHalf" :notes="itemNotes" @select="handleSelect" />
           <button class="credits-link" @click="isCreditsOpen = true">
             Projet de fan non officiel · Crédits
           </button>
@@ -890,12 +981,18 @@ function goBack() {
 
       <div class="page-right-mask">
         <div class="page page-right">
-          <PokedexIndex v-if="!selectedName" :entries="secondHalf" @select="handleSelect" />
+          <PokedexIndex
+            v-if="!selectedName"
+            :entries="secondHalf"
+            :notes="itemNotes"
+            @select="handleSelect"
+          />
           <PokemonInfoCard
             v-else-if="pokemon"
             :pokemon="pokemon"
             @select="handleSelect"
             @filter-type="handleTypeFilter"
+            @filter-item="handleItemFilter"
           />
         </div>
       </div>
@@ -1188,6 +1285,15 @@ function goBack() {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.item-option-sprite {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
 }
 .sort-options li.active {
   background: var(--accent);

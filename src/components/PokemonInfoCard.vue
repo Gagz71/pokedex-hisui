@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { TYPE_COLORS } from '../data/typeColors'
+import { EVOLUTION_ITEMS } from '../data/evolutionItems'
 import { useProgressStore, alphaKey } from '../stores/progress'
 
 const props = defineProps<{
@@ -11,9 +12,16 @@ const props = defineProps<{
     typeSlugs: string[]
     abilities: string[]
     stats: { name: string; value: number }[]
-    evolutions: { apiName: string; name: string; sprite: string; condition: string }[]
+    evolutions: {
+      apiName: string
+      name: string
+      sprite: string
+      condition: string
+      itemSlug?: string
+    }[]
     previousEvolution: { apiName: string; name: string; sprite: string } | null
     evolvedFromCondition: string
+    evolvedFromItem?: string
     evolutionLine: { apiName: string; name: string; sprite: string; condition: string }[][]
     apiName: string
     hisuiNumber: number | null
@@ -46,6 +54,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [name: string]
   'filter-type': [slug: string]
+  'filter-item': [slug: string]
 }>()
 
 type View = 'defaut' | 'stats' | 'type' | 'evolution' | 'localisation' | 'moveset'
@@ -130,6 +139,13 @@ const JUBILIFE_PIN = {
 }
 
 const progress = useProgressStore()
+
+// « Utiliser l'objet : Pierre Soleil (de jour) » -> « (de jour) » : la fin de
+// la condition, après le nom de l'objet affiché en lien.
+function conditionRest(condition: string, itemSlug: string): string {
+  const prefix = `Utiliser l'objet : ${EVOLUTION_ITEMS[itemSlug]?.name ?? ''}`
+  return condition.startsWith(prefix) ? condition.slice(prefix.length) : ''
+}
 
 // Rappel de l'état d'un Baron fixe dans l'onglet Carte (le suivi se fait
 // sous l'illustration, avec les autres boutons de progression).
@@ -387,7 +403,15 @@ const hoveredZoneName = ref<string | null>(null)
                 <img :src="evo.sprite" :alt="evo.name" />
                 <div class="evolution-text">
                   <span class="evolution-name">{{ evo.name }}</span>
-                  <span class="evolution-condition">{{ evo.condition }}</span>
+                  <span class="evolution-condition">
+                    <template v-if="evo.itemSlug">
+                      Utiliser l'objet :
+                      <button class="item-link" @click.stop="emit('filter-item', evo.itemSlug)">
+                        {{ EVOLUTION_ITEMS[evo.itemSlug]?.name }}</button
+                      >{{ conditionRest(evo.condition, evo.itemSlug) }}
+                    </template>
+                    <template v-else>{{ evo.condition }}</template>
+                  </span>
                 </div>
               </div>
             </div>
@@ -408,7 +432,13 @@ const hoveredZoneName = ref<string | null>(null)
                 </button>
                 <div class="evo-final-how">
                   <span class="evo-final-arrow">→</span>
-                  <span>{{ pokemon.evolvedFromCondition }}</span>
+                  <span v-if="pokemon.evolvedFromItem">
+                    Utiliser l'objet :
+                    <button class="item-link" @click="emit('filter-item', pokemon.evolvedFromItem)">
+                      {{ EVOLUTION_ITEMS[pokemon.evolvedFromItem]?.name }}</button
+                    >{{ conditionRest(pokemon.evolvedFromCondition, pokemon.evolvedFromItem) }}
+                  </span>
+                  <span v-else>{{ pokemon.evolvedFromCondition }}</span>
                 </div>
                 <div class="evo-final-poke current">
                   <img :src="pokemon.sprite" :alt="pokemon.name" />
@@ -981,6 +1011,17 @@ const hoveredZoneName = ref<string | null>(null)
   font-weight: 800;
   text-transform: capitalize;
   color: #1a1a1a;
+}
+.item-link {
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2f7a4f;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
 }
 .evolution-condition {
   font-size: 13.5px;

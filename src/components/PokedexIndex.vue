@@ -21,6 +21,7 @@ defineProps<{
     typeSlugs: string[]
     rarity: 'legendary' | 'mythical' | null
   }[]
+  notes?: Record<string, string> // ex. « → Aquali » avec le filtre Objet
 }>()
 
 const emit = defineEmits<{
@@ -55,6 +56,7 @@ const emit = defineEmits<{
         <span v-if="progress.get(entry.apiName).evolved" class="entry-evolved" title="A évolué"
           >↗</span
         >
+        <span v-if="notes?.[entry.apiName]" class="entry-note">{{ notes[entry.apiName] }}</span>
       </span>
       <span class="entry-types">
         <span
@@ -86,6 +88,12 @@ const emit = defineEmits<{
 }
 .entry-list li:hover {
   background: rgba(0, 0, 0, 0.06);
+}
+.entry-note {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2f7a4f;
 }
 .entry-name {
   flex: 1;
