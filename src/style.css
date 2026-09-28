@@ -43,6 +43,15 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Pas de zoom au double appui (en cochant vite, par exemple) ; le zoom à
+     deux doigts reste possible. */
+  touch-action: manipulation;
+  /* Pas d'agrandissement automatique du texte en mode paysage sur iPhone */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--bg);

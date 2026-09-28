@@ -1284,5 +1284,28 @@ function goBack() {
   .spine {
     display: none;
   }
+
+  /* Menus Type / Statut / Tri : ancrés sur toute la largeur de la barre
+     d'outils (sinon ceux de la 2e ligne sortent de l'écran à gauche). */
+  .index-toolbar {
+    position: relative;
+  }
+  .sort-menu,
+  .type-menu {
+    position: static;
+  }
+  .sort-options,
+  .type-options {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-height: 60vh;
+  }
+
+  /* 16 px minimum : en dessous, l'iPhone zoome sur le champ dès qu'on le
+     touche, et ne dézoome pas ensuite. */
+  .search-input {
+    font-size: 16px;
+  }
 }
 </style>

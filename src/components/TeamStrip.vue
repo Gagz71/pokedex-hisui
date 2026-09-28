@@ -17,7 +17,7 @@ const emptySlots = computed(() => Math.max(0, TEAM_SIZE - members.value.length))
       Mon équipe <span>{{ members.length }}/{{ TEAM_SIZE }}</span>
     </h2>
     <p v-if="!members.length" class="team-empty">
-      Ouvre la fiche d'un Pokémon et touche « Ajouter à l'équipe ».
+      Ouvre la fiche d'un Pokémon et touche « ＋ Équipe » ou « ＋ Équipe en Baron ».
     </p>
     <ul v-else class="team-slots">
       <li v-for="m in members" :key="m.id" class="slot" :class="{ alpha: m.alpha }">

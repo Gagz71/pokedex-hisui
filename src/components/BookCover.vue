@@ -37,7 +37,9 @@ const emit = defineEmits<{
   height: var(--page-h);
   transform-origin: left center;
   transform: rotateY(0deg);
-  transition: transform 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0.1, 0.2, 1),
+    visibility 0s;
   backface-visibility: hidden;
   cursor: pointer;
   border-radius: 6px 14px 14px 6px;
@@ -52,6 +54,12 @@ const emit = defineEmits<{
 .cover.open {
   transform: rotateY(-150deg);
   pointer-events: none;
+  /* Une fois l'animation finie, la couverture pivotée est masquée : sinon
+     elle déborde (invisible) à gauche de l'écran sur téléphone. */
+  visibility: hidden;
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0.1, 0.2, 1),
+    visibility 0s 0.7s;
 }
 
 .cover::before {
