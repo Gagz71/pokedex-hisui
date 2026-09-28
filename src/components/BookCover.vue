@@ -24,7 +24,6 @@ const emit = defineEmits<{
     </div>
     <div class="groove"></div>
     <p class="hint">Cliquer pour ouvrir</p>
-    <span class="disclaimer">Projet de fan non officiel</span>
     <span class="signature">© 2026 MDS Digital</span>
   </div>
 </template>
@@ -166,8 +165,7 @@ const emit = defineEmits<{
   color: rgba(255, 255, 255, 0.75);
 }
 
-/* Mentions discrètes dans les coins inférieurs */
-.disclaimer,
+/* Signature discrète, coin inférieur droit */
 .signature {
   position: absolute;
   bottom: 10px;
@@ -176,11 +174,6 @@ const emit = defineEmits<{
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.4);
   pointer-events: none;
-}
-.disclaimer {
-  left: 14px;
-}
-.signature {
   right: 14px;
 }
 </style>
