@@ -26,8 +26,8 @@ const emit = defineEmits<{
   position: absolute;
   top: 0;
   left: 0;
-  width: 400px;
-  height: 560px;
+  width: var(--page-w);
+  height: var(--page-h);
   transform-origin: left center;
   transform: rotateY(0deg);
   transition: transform 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);

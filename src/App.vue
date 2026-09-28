@@ -4,6 +4,8 @@ import BookCover from './components/BookCover.vue'
 import PokemonArtCard from './components/PokemonArtCard.vue'
 import PokemonInfoCard from './components/PokemonInfoCard.vue'
 import PokedexIndex from './components/PokedexIndex.vue'
+import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
+import { TYPE_COLORS } from './data/typeColors'
 
 const isOpen = ref(false)
 const selectedName = ref<string | null>(null)
@@ -12,6 +14,14 @@ const history = ref<string[]>([])
 const sortField = ref<'number' | 'alpha'>('number')
 const sortDirection = ref<'asc' | 'desc'>('asc')
 const isSortMenuOpen = ref(false)
+
+const typeFilter = ref<string | null>(null)
+const isTypeMenuOpen = ref(false)
+
+function setTypeFilter(slug: string | null) {
+  typeFilter.value = slug
+  isTypeMenuOpen.value = false
+}
 
 const sortedEntries = computed(() => {
   const list = [...entries.value]
@@ -42,17 +52,22 @@ interface PokedexEntry {
   entryNumber: number
   name: string //affichage en français
   apiName: string // pour l'appel API (slug anglais)
+  typeSlugs: string[]
 }
 
 const entries = ref<PokedexEntry[]>([])
 
 const searchQuery = ref('')
 
-//Recherche de l'entrée par le nom ou le numéro
+//Recherche de l'entrée par le nom ou le numéro, filtrée par type si choisi
 const filteredEntries = computed(() => {
   const query = normalize(searchQuery.value.trim())
-  if (!query) return sortedEntries.value
-  return sortedEntries.value.filter(
+  let list = sortedEntries.value
+  if (typeFilter.value) {
+    list = list.filter((e) => e.typeSlugs.includes(typeFilter.value as string))
+  }
+  if (!query) return list
+  return list.filter(
     (e) => normalize(e.name).includes(query) || e.entryNumber.toString().includes(query),
   )
 })
@@ -66,15 +81,28 @@ async function fetchIndex() {
   const data = await res.json()
   const rawEntries = data.pokemon_entries
 
-  // Un appel par Pokémon pour récupérer son nom français
+  // Un appel par Pokémon pour récupérer son nom français...
   const speciesResponses = await Promise.all(
     rawEntries.map((e: any) => fetch(e.pokemon_species.url).then((r) => r.json())),
+  )
+
+  // ...puis un appel pour son ou ses types (nécessaire pour le filtre par
+  // type de l'index), via la variante par défaut de l'espèce : certaines
+  // espèces (Wormadam, Giratina, Shaymin...) n'ont pas de ressource
+  // /pokemon/{nom} à leur nom brut, seulement des variantes.
+  const pokemonResponses = await Promise.all(
+    speciesResponses.map((s: any) =>
+      fetch(getDefaultVarietyUrl(s))
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ),
   )
 
   entries.value = rawEntries.map((e: any, i: number) => ({
     entryNumber: e.entry_number,
     name: getFrenchName(speciesResponses[i].names),
     apiName: e.pokemon_species.name,
+    typeSlugs: pokemonResponses[i]?.types.map((t: any) => t.type.name) ?? [],
   }))
 }
 
@@ -87,6 +115,19 @@ const STAT_LABELS: Record<string, string> = {
   'special-attack': 'Att. Spé',
   'special-defense': 'Déf. Spé',
   speed: 'Vitesse',
+}
+
+const MOVE_METHOD_LABELS: Record<string, string> = {
+  'level-up': 'Montée de niveau',
+  machine: 'Capsule',
+  egg: 'Œuf',
+  tutor: 'Enseigné',
+}
+
+const DAMAGE_CLASS_LABELS: Record<string, string> = {
+  physical: 'Physique',
+  special: 'Spéciale',
+  status: 'Statut',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -123,10 +164,30 @@ interface PokemonData {
   name: string
   sprite: string
   types: string[]
+  typeSlugs: string[]
   abilities: string[]
   stats: { name: string; value: number }[]
   evolutions: EvolutionInfo[]
   previousEvolution: EvoLink | null
+  locations: LocationEntry[]
+  genus: string
+  description: string
+  weaknesses: { type: string; slug: string; multiplier: number }[]
+  resistances: { type: string; slug: string; multiplier: number }[]
+  immunities: { type: string; slug: string }[]
+  strengths: { type: string; slug: string }[]
+  moves: {
+    name: string
+    type: string
+    typeSlug: string
+    damageClass: string
+    power: number | null
+    accuracy: number | null
+    pp: number
+    effect: string
+    method: string
+    level: number
+  }[]
 }
 
 const pokemon = ref<PokemonData | null>(null)
@@ -135,6 +196,23 @@ const error = ref<string | null>(null)
 
 function getFrenchName(names: any[]): string {
   return names.find((n) => n.language.name === 'fr')?.name ?? '???' // ?. === retourne undefined si .find ne trouve rien
+}
+
+function getFrenchGenus(genera: any[]): string {
+  return genera.find((g) => g.language.name === 'fr')?.genus ?? ''
+}
+
+// Texte du Pokédex : Legends Arceus n'a pas de traduction française dans
+// l'API, donc on retombe sur un autre jeu — mais sans jamais l'afficher,
+// pour ne pas laisser penser que le texte vient d'Arceus.
+function getFrenchDescription(entries: any[]): string {
+  const priority = ['sword', 'shield', 'ultra-sun', 'ultra-moon', 'sun', 'moon']
+  for (const version of priority) {
+    const entry = entries.find((e) => e.language.name === 'fr' && e.version.name === version)
+    if (entry) return entry.flavor_text.replace(/[\n\f]/g, ' ')
+  }
+  const fallback = entries.find((e) => e.language.name === 'fr')
+  return fallback ? fallback.flavor_text.replace(/[\n\f]/g, ' ') : ''
 }
 
 function describeEvolution(detail: any): string {
@@ -165,6 +243,29 @@ function describeTimeOfDay(timeOfDay: string | undefined): string {
   }
 }
 
+// Certaines espèces (Wormadam, Basculin, Giratina, Shaymin...) n'ont pas de
+// ressource /pokemon/{nom-espèce} : seulement des variantes (ex: wormadam-plant).
+// On passe donc toujours par les "varieties" de l'espèce pour trouver la bonne URL.
+// Et comme cette appli ne parle QUE de Hisui, on préfère toujours la forme de
+// Hisui quand elle existe (sprite, types, capacités... tout diffère sinon) —
+// Giratina est un cas à part : sa forme d'Hisui s'appelle "-origin", pas "-hisui".
+const HISUI_VARIETY_OVERRIDES: Record<string, string> = {
+  giratina: 'giratina-origin',
+  basculin: 'basculin-white-striped',
+}
+
+function getDefaultVarietyUrl(speciesData: any): string {
+  const override = HISUI_VARIETY_OVERRIDES[speciesData.name]
+  const hisuiVariety = speciesData.varieties.find((v: any) =>
+    override ? v.pokemon.name === override : v.pokemon.name.endsWith('-hisui'),
+  )
+  const variety =
+    hisuiVariety ??
+    speciesData.varieties.find((v: any) => v.is_default) ??
+    speciesData.varieties[0]
+  return variety.pokemon.url
+}
+
 //Fonction pour retouver pokemon évoluer
 function findChainNode(node: any, targetName: string): any {
   if (node.species.name === targetName) return node
@@ -185,25 +286,154 @@ function findParentNode(node: any, targetName: string, parent: any = null): any 
   return null
 }
 
+// Faiblesses/résistances/forces : on combine les damage_relations de chaque
+// type du Pokémon (les multiplicateurs se cumulent en cas de double-type).
+const ALL_TYPES = Object.keys(TYPE_LABELS)
+
+function computeTypeMatchups(typeResponses: any[]) {
+  const defenseMultiplier = new Map<string, number>(ALL_TYPES.map((t) => [t, 1]))
+  const mult = (t: string) => defenseMultiplier.get(t) ?? 1
+
+  const offensiveStrengths = new Set<string>()
+
+  for (const typeRes of typeResponses) {
+    const dr = typeRes.damage_relations
+    for (const t of dr.double_damage_from) defenseMultiplier.set(t.name, mult(t.name) * 2)
+    for (const t of dr.half_damage_from) defenseMultiplier.set(t.name, mult(t.name) * 0.5)
+    for (const t of dr.no_damage_from) defenseMultiplier.set(t.name, 0)
+    for (const t of dr.double_damage_to) offensiveStrengths.add(t.name)
+  }
+
+  const weaknesses = ALL_TYPES.filter((t) => mult(t) > 1)
+    .sort((a, b) => mult(b) - mult(a))
+    .map((t) => ({ type: TYPE_LABELS[t] ?? t, slug: t, multiplier: mult(t) }))
+
+  const resistances = ALL_TYPES.filter((t) => mult(t) > 0 && mult(t) < 1)
+    .sort((a, b) => mult(a) - mult(b))
+    .map((t) => ({ type: TYPE_LABELS[t] ?? t, slug: t, multiplier: mult(t) }))
+
+  const immunities = ALL_TYPES.filter((t) => mult(t) === 0).map((t) => ({
+    type: TYPE_LABELS[t] ?? t,
+    slug: t,
+  }))
+
+  const strengths = Array.from(offensiveStrengths).map((t) => ({
+    type: TYPE_LABELS[t] ?? t,
+    slug: t,
+  }))
+
+  return { weaknesses, resistances, immunities, strengths }
+}
+
+// PokeAPI n'a, pour de rares pokémon, aucune donnée de sorts pour Legends
+// Arceus (vrai trou de données, pas un problème de variante). On comble ça
+// à la main pour les cas rencontrés, sourcé sur pokemondb.net.
+const POKEMON_MOVE_OVERRIDES: Record<string, { slug: string; method: string; level: number }[]> = {
+  porygon2: [
+    { slug: 'tackle', method: 'level-up', level: 1 },
+    { slug: 'thunder-shock', method: 'level-up', level: 5 },
+    { slug: 'thunder-wave', method: 'level-up', level: 9 },
+    { slug: 'spark', method: 'level-up', level: 15 },
+    { slug: 'tri-attack', method: 'level-up', level: 21 },
+    { slug: 'thunderbolt', method: 'level-up', level: 29 },
+    { slug: 'recover', method: 'level-up', level: 37 },
+    { slug: 'hyper-beam', method: 'level-up', level: 47 },
+    { slug: 'aerial-ace', method: 'tutor', level: 0 },
+    { slug: 'charge-beam', method: 'tutor', level: 0 },
+    { slug: 'giga-impact', method: 'tutor', level: 0 },
+    { slug: 'ice-beam', method: 'tutor', level: 0 },
+    { slug: 'icy-wind', method: 'tutor', level: 0 },
+    { slug: 'iron-tail', method: 'tutor', level: 0 },
+    { slug: 'psychic', method: 'tutor', level: 0 },
+    { slug: 'rest', method: 'tutor', level: 0 },
+    { slug: 'shadow-ball', method: 'tutor', level: 0 },
+    { slug: 'swift', method: 'tutor', level: 0 },
+    { slug: 'zen-headbutt', method: 'tutor', level: 0 },
+  ],
+}
+
+// Ne garde que les sorts effectivement appris dans Legends Arceus (pas les
+// sorts d'autres jeux), avec leur méthode d'apprentissage pour ce jeu.
+function getHisuiMoveStubs(
+  pokemonName: string,
+  moves: any[],
+): { name: string; url: string; method: string; level: number }[] {
+  const stubs = moves.map((m) => {
+    const detail = m.version_group_details.find(
+      (vd: any) => vd.version_group.name === 'legends-arceus',
+    )
+    if (!detail) return null
+    return {
+      name: m.move.name as string,
+      url: m.move.url as string,
+      method: detail.move_learn_method.name as string,
+      level: detail.level_learned_at as number,
+    }
+  })
+  const found = stubs.filter((m): m is NonNullable<typeof m> => m !== null)
+  if (found.length > 0) return found
+
+  const override = POKEMON_MOVE_OVERRIDES[pokemonName]
+  if (!override) return []
+  return override.map((o) => ({
+    name: o.slug,
+    url: `https://pokeapi.co/api/v2/move/${o.slug}`,
+    method: o.method,
+    level: o.level,
+  }))
+}
+
 async function fetchPokemon(name: string) {
   isLoading.value = true
   error.value = null
   pokemon.value = null
   try {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
-    if (!res.ok) throw new Error('not found')
-    const data = await res.json()
-
-    // Nom français : deuxième appel, vers l'URL "species" fournie par l'API
-    const speciesRes = await fetch(data.species.url)
+    // On part de l'espèce (toujours valide par son nom brut), puis on résout
+    // sa variante par défaut, plutôt que de supposer que /pokemon/{name} existe.
+    const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`)
+    if (!speciesRes.ok) throw new Error('not found')
     const speciesData = await speciesRes.json()
     const frenchName = getFrenchName(speciesData.names)
+
+    const res = await fetch(getDefaultVarietyUrl(speciesData))
+    if (!res.ok) throw new Error('not found')
+    const data = await res.json()
 
     // Capacités françaises : un appel par capacité, tous lancés en même temps
     const abilityResponses = await Promise.all(
       data.abilities.map((a: any) => fetch(a.ability.url).then((r) => r.json())),
     )
     const frenchAbilities = abilityResponses.map((a) => getFrenchName(a.names))
+
+    // Faiblesses/résistances/forces : un appel par type du Pokémon (1 ou 2)
+    const typeResponses = await Promise.all(
+      data.types.map((t: any) => fetch(t.type.url).then((r) => r.json())),
+    )
+    const matchups = computeTypeMatchups(typeResponses)
+
+    // Sorts : uniquement ceux appris dans Legends Arceus, un appel par sort
+    const moveStubs = getHisuiMoveStubs(data.name, data.moves)
+    const moveResponses = await Promise.all(
+      moveStubs.map((m) => fetch(m.url).then((r) => r.json())),
+    )
+    const moves = moveStubs
+      .map((stub, i) => {
+        const moveData = moveResponses[i]
+        return {
+          name: getFrenchName(moveData.names),
+          type: TYPE_LABELS[moveData.type.name] ?? moveData.type.name,
+          typeSlug: moveData.type.name as string,
+          damageClass: DAMAGE_CLASS_LABELS[moveData.damage_class.name] ?? moveData.damage_class.name,
+          power: moveData.power as number | null,
+          accuracy: moveData.accuracy as number | null,
+          pp: moveData.pp as number,
+          effect:
+            moveData.effect_entries.find((e: any) => e.language.name === 'fr')?.short_effect ?? '',
+          method: MOVE_METHOD_LABELS[stub.method] ?? stub.method,
+          level: stub.level,
+        }
+      })
+      .sort((a, b) => (a.level || 9999) - (b.level || 9999))
 
     // Chaîne d'évolution
     const evoChainRes = await fetch(speciesData.evolution_chain.url)
@@ -213,10 +443,8 @@ async function fetchPokemon(name: string) {
 
     const evolutions = await Promise.all(
       nextNodes.map(async (node: any) => {
-        const [pokeRes, speciesRes] = await Promise.all([
-          fetch(`https://pokeapi.co/api/v2/pokemon/${node.species.name}`).then((r) => r.json()),
-          fetch(node.species.url).then((r) => r.json()),
-        ])
+        const speciesRes = await fetch(node.species.url).then((r) => r.json())
+        const pokeRes = await fetch(getDefaultVarietyUrl(speciesRes)).then((r) => r.json())
 
         const details: any[] = node.evolution_details
         const detail =
@@ -253,10 +481,8 @@ async function fetchPokemon(name: string) {
     const parentNode = findParentNode(evoChainData.chain, data.species.name)
     let previousEvolution: EvoLink | null = null
     if (parentNode) {
-      const [prevPokeRes, prevSpeciesRes] = await Promise.all([
-        fetch(`https://pokeapi.co/api/v2/pokemon/${parentNode.species.name}`).then((r) => r.json()),
-        fetch(parentNode.species.url).then((r) => r.json()),
-      ])
+      const prevSpeciesRes = await fetch(parentNode.species.url).then((r) => r.json())
+      const prevPokeRes = await fetch(getDefaultVarietyUrl(prevSpeciesRes)).then((r) => r.json())
       previousEvolution = {
         apiName: parentNode.species.name,
         name: getFrenchName(prevSpeciesRes.names),
@@ -268,6 +494,7 @@ async function fetchPokemon(name: string) {
       name: frenchName,
       sprite: data.sprites.other['official-artwork'].front_default,
       types: data.types.map((t: any) => TYPE_LABELS[t.type.name] ?? t.type.name),
+      typeSlugs: data.types.map((t: any) => t.type.name),
       abilities: frenchAbilities,
       stats: data.stats.map((s: any) => ({
         name: STAT_LABELS[s.stat.name] ?? s.stat.name,
@@ -275,6 +502,14 @@ async function fetchPokemon(name: string) {
       })),
       evolutions: evolutions,
       previousEvolution: previousEvolution,
+      locations: HISUI_LOCATIONS[name] ?? [],
+      genus: getFrenchGenus(speciesData.genera),
+      description: getFrenchDescription(speciesData.flavor_text_entries),
+      weaknesses: matchups.weaknesses,
+      resistances: matchups.resistances,
+      immunities: matchups.immunities,
+      strengths: matchups.strengths,
+      moves: moves,
     }
   } catch {
     error.value = 'Impossible de charger ce Pokémon.'
@@ -286,6 +521,12 @@ async function fetchPokemon(name: string) {
 function handleSelect(name: string) {
   selectedName.value = name
   fetchPokemon(name)
+}
+
+function handleTypeFilter(slug: string) {
+  typeFilter.value = slug
+  searchQuery.value = ''
+  selectedName.value = null
 }
 
 function backToIndex() {
@@ -305,16 +546,8 @@ function goBack() {
   <div class="scene">
     <div class="book" :class="{ open: isOpen }">
       <div class="page page-left">
-        <button class="close-tab" v-if="isOpen" @click="isOpen = false">✕ Fermer le livre</button>
-        <button class="close-tab" v-if="selectedName" @click="selectedName = null">
-          ← Retour à l'index
-        </button>
-        <button
-          class="close-tab"
-          v-if="selectedName && pokemon?.previousEvolution"
-          @click="handleSelect(pokemon.previousEvolution.apiName)"
-        >
-          ← {{ pokemon.previousEvolution.name }}
+        <button class="close-tab" v-if="isOpen && !selectedName" @click="isOpen = false">
+          ✕ Fermer le livre
         </button>
         <div class="index-toolbar" v-if="!selectedName">
           <input
@@ -323,6 +556,30 @@ function goBack() {
             placeholder="Rechercher par nom ou n°..."
             class="search-input"
           />
+
+          <div class="type-menu">
+            <button class="type-toggle" @click="isTypeMenuOpen = !isTypeMenuOpen">
+              <span
+                v-if="typeFilter"
+                class="type-toggle-dot"
+                :style="{ background: TYPE_COLORS[typeFilter] }"
+              ></span>
+              {{ typeFilter ? TYPE_LABELS[typeFilter] : 'Type' }}
+              <span class="arrow" :class="{ open: isTypeMenuOpen }">▾</span>
+            </button>
+            <ul class="type-options" v-if="isTypeMenuOpen">
+              <li @click="setTypeFilter(null)" :class="{ active: !typeFilter }">Tous les types</li>
+              <li
+                v-for="slug in Object.keys(TYPE_LABELS)"
+                :key="slug"
+                @click="setTypeFilter(slug)"
+                :class="{ active: typeFilter === slug }"
+              >
+                <span class="type-option-dot" :style="{ background: TYPE_COLORS[slug] }"></span>
+                {{ TYPE_LABELS[slug] }}
+              </li>
+            </ul>
+          </div>
 
           <div class="sort-menu">
             <button class="sort-toggle" @click="isSortMenuOpen = !isSortMenuOpen">
@@ -341,14 +598,40 @@ function goBack() {
         <template v-else>
           <p v-if="isLoading" class="status">Chargement...</p>
           <p v-else-if="error" class="status">{{ error }}</p>
-          <PokemonArtCard v-else-if="pokemon" :sprite="pokemon.sprite" :name="pokemon.name" />
+          <PokemonArtCard
+            v-else-if="pokemon"
+            :sprite="pokemon.sprite"
+            :name="pokemon.name"
+            :typeSlugs="pokemon.typeSlugs"
+          >
+            <template #nav>
+              <div class="nav-row">
+                <button class="close-tab" @click="selectedName = null">← Retour à l'index</button>
+                <button class="close-tab" v-if="isOpen" @click="isOpen = false">
+                  ✕ Fermer le livre
+                </button>
+              </div>
+              <button
+                class="close-tab prev-evo"
+                v-if="pokemon.previousEvolution"
+                @click="handleSelect(pokemon.previousEvolution.apiName)"
+              >
+                ← {{ pokemon.previousEvolution.name }}
+              </button>
+            </template>
+          </PokemonArtCard>
         </template>
       </div>
 
       <div class="page-right-mask">
         <div class="page page-right">
           <PokedexIndex v-if="!selectedName" :entries="secondHalf" @select="handleSelect" />
-          <PokemonInfoCard v-else-if="pokemon" :pokemon="pokemon" @select="handleSelect" />
+          <PokemonInfoCard
+            v-else-if="pokemon"
+            :pokemon="pokemon"
+            @select="handleSelect"
+            @filter-type="handleTypeFilter"
+          />
         </div>
       </div>
 
@@ -370,18 +653,20 @@ function goBack() {
 
 .book {
   position: relative;
-  width: 400px;
-  height: 560px;
-  transition: width 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
+  width: var(--page-w);
+  height: var(--page-h);
+  transition:
+    width 0.7s cubic-bezier(0.4, 0.1, 0.2, 1),
+    height 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
 }
 .book.open {
-  width: 800px;
+  width: calc(var(--page-w) * 2);
 }
 .page {
   position: absolute;
   top: 0;
-  width: 400px;
-  height: 560px;
+  width: var(--page-w);
+  height: var(--page-h);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -403,19 +688,19 @@ function goBack() {
 .page-right-mask {
   position: absolute;
   top: 0;
-  left: 400px;
+  left: var(--page-w);
   width: 0;
-  height: 560px;
+  height: var(--page-h);
   overflow: hidden;
   transition: width 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
 }
 .book.open .page-right-mask {
-  width: 400px;
+  width: var(--page-w);
 }
 
 .spine {
   position: absolute;
-  left: 397px;
+  left: calc(var(--page-w) - 3px);
   top: 0;
   bottom: 0;
   width: 6px;
@@ -450,6 +735,27 @@ function goBack() {
 .close-tab:hover {
   color: var(--accent);
 }
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.nav-row .close-tab {
+  margin: 0;
+  color: #3a4a3a;
+}
+.nav-row .close-tab:hover {
+  color: #1a3d1a;
+}
+.close-tab.prev-evo {
+  margin: 0 0 14px;
+  color: #3a4a3a;
+}
+.close-tab.prev-evo:hover {
+  color: #1a3d1a;
+}
 .status {
   font-size: 13px;
   color: var(--text-2);
@@ -475,18 +781,24 @@ function goBack() {
   color: #fff;
   border-color: var(--accent);
 }
-.sort-menu {
+.sort-menu,
+.type-menu {
   position: relative;
 }
-.sort-toggle {
+.sort-toggle,
+.type-toggle {
   border: 1px solid var(--border);
   background: none;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   color: var(--text-2);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .arrow {
   display: inline-block;
@@ -495,10 +807,11 @@ function goBack() {
 .arrow.open {
   transform: rotate(180deg);
 }
-.sort-options {
+.sort-options,
+.type-options {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   margin-top: 4px;
   list-style: none;
   padding: 4px;
@@ -507,30 +820,80 @@ function goBack() {
   border-radius: 6px;
   box-shadow: var(--shadow);
   z-index: 4;
-  min-width: 140px;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
 }
-.sort-options li {
-  padding: 6px 10px;
-  font-size: 12px;
+.sort-options li,
+.type-options li {
+  padding: 9px 12px;
+  font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.sort-options li:hover {
+.sort-options li:hover,
+.type-options li:hover {
   background: rgba(0, 0, 0, 0.06);
+}
+.type-options li.active {
+  background: var(--accent);
+  color: #fff;
+}
+.type-toggle-dot,
+.type-option-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .index-toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
 }
 .search-input {
-  flex: 1;
+  flex: 1 1 140px;
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
   color: var(--text);
   background: var(--surface);
+}
+
+/* Écran trop étroit pour montrer les deux pages côte à côte :
+   le livre s'ouvre vers le bas (page de droite sous la page de gauche)
+   plutôt que vers la droite. */
+@media (max-width: 720px) {
+  .scene {
+    padding: 28px 14px;
+  }
+  .book.open {
+    width: var(--page-w);
+    height: calc(var(--page-h) * 2 + 20px);
+  }
+  .page-right-mask {
+    left: 0;
+    top: calc(var(--page-h) + 20px);
+    width: var(--page-w);
+    height: 0;
+    transition: height 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
+  }
+  .book.open .page-right-mask {
+    height: var(--page-h);
+  }
+  .page-right {
+    border-radius: 6px;
+    border-left: 1px solid var(--border);
+  }
+  .spine {
+    display: none;
+  }
 }
 </style>
