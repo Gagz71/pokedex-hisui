@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { TYPE_COLORS } from '../data/typeColors'
 import { EVOLUTION_ITEMS } from '../data/evolutionItems'
+import { FOOD_PREFERENCES, FOODS } from '../data/foodPreferences'
 import { useProgressStore, alphaKey } from '../stores/progress'
 
 const props = defineProps<{
@@ -140,6 +141,56 @@ const JUBILIFE_PIN = {
 
 const progress = useProgressStore()
 
+const food = computed(() => FOOD_PREFERENCES[props.pokemon.apiName])
+
+// --- Mon Pokémon : niveau (en-tête) et stats (onglet Stats), saisis à la main
+const mine = computed(() => progress.get(props.pokemon.apiName))
+const statsMode = ref<'base' | 'mine'>('base')
+const editingLevel = ref(false)
+const levelDraft = ref(1)
+const levelHint = ref(false)
+let hintTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(
+  () => props.pokemon.apiName,
+  () => {
+    statsMode.value = 'base'
+    editingLevel.value = false
+    levelHint.value = false
+  },
+)
+
+function openLevel() {
+  if (!mine.value.caught) {
+    levelHint.value = true
+    clearTimeout(hintTimer)
+    hintTimer = setTimeout(() => (levelHint.value = false), 3500)
+    return
+  }
+  levelDraft.value = mine.value.level ?? 1
+  editingLevel.value = true
+}
+function stepLevel(delta: number) {
+  levelDraft.value = Math.min(100, Math.max(1, (Number(levelDraft.value) || 1) + delta))
+}
+function saveLevel() {
+  const value = Number(levelDraft.value)
+  progress.setLevel(props.pokemon.apiName, value >= 1 ? value : null)
+  editingLevel.value = false
+}
+function clearLevel() {
+  progress.setLevel(props.pokemon.apiName, null)
+  editingLevel.value = false
+}
+
+function saveStat(stat: string, raw: string) {
+  const value = raw.trim() === '' ? null : Number(raw)
+  progress.setStat(props.pokemon.apiName, stat, value)
+}
+const baseTotal = computed(() => props.pokemon.stats.reduce((sum, s) => sum + s.value, 0))
+// Échelle des barres de mes stats : la plus haute valeur saisie
+const mineScale = computed(() => Math.max(1, ...Object.values(mine.value.stats ?? {})))
+
 // « Utiliser l'objet : Pierre Soleil (de jour) » -> « (de jour) » : la fin de
 // la condition, après le nom de l'objet affiché en lien.
 function conditionRest(condition: string, itemSlug: string): string {
@@ -159,7 +210,7 @@ function alphaStatus(region: string, place: string): string {
 const RARITY_LABELS = { legendary: 'Légendaire', mythical: 'Fabuleux' } as const
 
 // Barons à emplacement fixe (champ alphas des localisations). Les Barons des
-// invasions massives ne sont pas listés.
+// apparitions massives ne sont pas listés.
 const alphaPlaces = computed(() => props.pokemon.locations.flatMap((l) => l.alphas ?? []))
 
 const formatNumber = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
@@ -189,12 +240,40 @@ const hoveredZoneName = ref<string | null>(null)
     <div class="inner">
       <div class="header">
         <span class="name">{{ pokemon.name }}</span>
+        <!-- Niveau de mon Pokémon (à la place des PV de base, visibles dans Stats) -->
         <div class="hp-badge">
-          <span class="hp-label">PV</span>
-          <span class="hp-value">{{ pokemon.stats.find((s) => s.name === 'PV')?.value }}</span>
+          <form v-if="editingLevel" class="level-editor" @submit.prevent="saveLevel">
+            <button type="button" aria-label="Niveau -1" @click="stepLevel(-1)">−</button>
+            <input
+              v-model.number="levelDraft"
+              type="number"
+              min="1"
+              max="100"
+              inputmode="numeric"
+              aria-label="Niveau"
+            />
+            <button type="button" aria-label="Niveau +1" @click="stepLevel(1)">+</button>
+            <button type="submit" class="ok">OK</button>
+            <button v-if="mine.level" type="button" class="clear" @click="clearLevel">
+              Effacer
+            </button>
+          </form>
+          <button
+            v-else
+            class="level-button"
+            :class="{ empty: !mine.level }"
+            :title="mine.caught ? 'Modifier le niveau' : 'Capture-le pour noter son niveau'"
+            @click="openLevel"
+          >
+            <span class="hp-label">Niv.</span>
+            <span class="hp-value">{{ mine.level ?? '—' }}</span>
+          </button>
           <span class="type-dot"></span>
         </div>
       </div>
+      <p v-if="levelHint" class="level-hint">
+        Coche « Capturé » sous l'illustration pour noter son niveau.
+      </p>
 
       <div class="buttons">
         <button :class="{ active: activeView === 'defaut' }" @click="activeView = 'defaut'">
@@ -283,20 +362,109 @@ const hoveredZoneName = ref<string | null>(null)
                 </button>
               </div>
             </div>
+
+            <!-- Préférences alimentaires (appâts) et objets portés -->
+            <div v-if="food" class="food">
+              <span class="fact-label">Pour l'attirer</span>
+              <ul v-if="food.likes.length" class="food-list">
+                <li v-for="key in food.likes" :key="key" class="food-item">
+                  <span class="food-icon">{{ FOODS[key].icon }}</span>
+                  <span>
+                    <b>{{ FOODS[key].lure }}</b>
+                    <small>aime {{ FOODS[key].likes }}</small>
+                  </span>
+                </li>
+              </ul>
+              <p v-else class="food-none">Aucun appât ne l'attire.</p>
+            </div>
+            <div v-if="food?.carried.length" class="food">
+              <span class="fact-label">Objets qu'il peut laisser</span>
+              <ul class="carried-list">
+                <li v-for="item in food.carried" :key="item.name + (item.form ?? '')">
+                  {{ item.name }}
+                  <span v-if="item.form" class="carried-form">({{ item.form }})</span>
+                  <b>{{ item.chance }} %</b>
+                </li>
+              </ul>
+              <p class="food-hint">En l'attrapant ou en le battant.</p>
+            </div>
           </div>
           <div v-else-if="activeView === 'stats'" class="stats">
-            <div v-for="stat in pokemon.stats" :key="stat.name" class="stat-row">
-              <div class="stat-head">
-                <span class="stat-name">{{ stat.name }}</span>
-                <span class="stat-value">{{ stat.value }}</span>
-              </div>
-              <div class="stat-bar">
-                <div
-                  class="stat-bar-fill"
-                  :style="{ width: Math.min(100, (stat.value / 255) * 100) + '%' }"
-                ></div>
-              </div>
+            <div class="stats-mode" role="tablist">
+              <button
+                role="tab"
+                :aria-selected="statsMode === 'base'"
+                :class="{ active: statsMode === 'base' }"
+                @click="statsMode = 'base'"
+              >
+                Base
+              </button>
+              <button
+                role="tab"
+                :aria-selected="statsMode === 'mine'"
+                :class="{ active: statsMode === 'mine' }"
+                @click="statsMode = 'mine'"
+              >
+                Mon Pokémon
+              </button>
             </div>
+
+            <template v-if="statsMode === 'base'">
+              <div v-for="stat in pokemon.stats" :key="stat.name" class="stat-row">
+                <div class="stat-head">
+                  <span class="stat-name">{{ stat.name }}</span>
+                  <span class="stat-value">{{ stat.value }}</span>
+                </div>
+                <div class="stat-bar">
+                  <div
+                    class="stat-bar-fill"
+                    :style="{ width: Math.min(100, (stat.value / 255) * 100) + '%' }"
+                  ></div>
+                </div>
+              </div>
+              <p class="stat-total">
+                Total <b>{{ baseTotal }}</b>
+              </p>
+            </template>
+
+            <p v-else-if="!mine.caught" class="stats-empty">
+              Coche « Capturé » sous l'illustration, puis note ici les stats de ton
+              {{ pokemon.name }}
+              telles que le jeu les affiche.
+            </p>
+
+            <template v-else>
+              <p class="stats-help">
+                Recopie les stats affichées dans le résumé de ton Pokémon (niveau
+                {{ mine.level ?? '?' }}).
+              </p>
+              <div v-for="stat in pokemon.stats" :key="stat.name" class="stat-row">
+                <div class="stat-head">
+                  <label class="stat-name" :for="'mine-' + stat.name">{{ stat.name }}</label>
+                  <input
+                    :id="'mine-' + stat.name"
+                    class="stat-input"
+                    type="number"
+                    min="0"
+                    inputmode="numeric"
+                    placeholder="—"
+                    :value="mine.stats?.[stat.name] ?? ''"
+                    @change="saveStat(stat.name, ($event.target as HTMLInputElement).value)"
+                  />
+                </div>
+                <div class="stat-bar">
+                  <div
+                    class="stat-bar-fill"
+                    :style="{
+                      width: ((mine.stats?.[stat.name] ?? 0) / mineScale) * 100 + '%',
+                    }"
+                  ></div>
+                </div>
+              </div>
+              <p class="stat-total">
+                Total <b>{{ progress.statTotal(pokemon.apiName) ?? '—' }}</b>
+              </p>
+            </template>
           </div>
           <div v-else-if="activeView === 'type'" class="type-view">
             <div class="type-badges">
@@ -630,8 +798,10 @@ const hoveredZoneName = ref<string | null>(null)
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
   flex-shrink: 0;
 }
 .name {
@@ -640,6 +810,67 @@ const hoveredZoneName = ref<string | null>(null)
   font-style: italic;
   color: #1a1a1a;
   text-transform: capitalize;
+}
+.level-button {
+  font: inherit;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1.5px dashed transparent;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.level-button:hover {
+  border-color: var(--type-accent);
+}
+.level-button.empty .hp-value {
+  color: #9aa1b4;
+}
+.level-editor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.level-editor input {
+  width: 56px;
+  font: inherit;
+  font-size: 16px; /* 16 px : pas de zoom automatique sur iPhone */
+  font-weight: 800;
+  text-align: center;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--type-accent);
+  background: #fff;
+}
+.level-editor button {
+  font: inherit;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1.5px solid #c9d6bd;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.level-editor button.ok {
+  background: var(--type-accent);
+  border-color: var(--type-accent);
+  color: #fff;
+}
+.level-editor button.clear {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7a62;
+}
+.level-hint {
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #a86a00;
 }
 .hp-badge {
   display: flex;
@@ -835,11 +1066,150 @@ const hoveredZoneName = ref<string | null>(null)
   background: var(--type-accent);
   color: #fff;
 }
+.food {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.food-list,
+.carried-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.food-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+.food-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #dce6d2;
+}
+.food-icon {
+  font-size: 20px;
+}
+.food-item b {
+  display: block;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+.food-item small {
+  font-size: 12px;
+  color: #6b7a62;
+}
+.food-none,
+.food-hint {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7a62;
+}
+.food-hint {
+  font-size: 12px;
+  font-style: italic;
+}
+.carried-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.carried-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14.5px;
+  color: #1a1a1a;
+}
+.carried-list b {
+  margin-left: auto;
+  font-size: 13px;
+  color: #6b7a62;
+}
+.carried-form {
+  font-size: 12px;
+  color: #6b7a62;
+}
 
 .stats {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+.stats-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #eef3e8;
+}
+.stats-mode button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7a62;
+  cursor: pointer;
+}
+.stats-mode button.active {
+  background: var(--type-accent);
+  color: #fff;
+}
+.stats-help,
+.stats-empty {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #5b6373;
+}
+.stat-input {
+  width: 84px;
+  font: inherit;
+  font-size: 16px; /* 16 px : pas de zoom automatique sur iPhone */
+  font-weight: 800;
+  text-align: right;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1.5px solid #c9d6bd;
+  background: #fff;
+  color: #1a1a1a;
+}
+/* sans les petites flèches du navigateur (− / + et clavier suffisent) */
+.stat-input,
+.level-editor input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.stat-input::-webkit-inner-spin-button,
+.stat-input::-webkit-outer-spin-button,
+.level-editor input::-webkit-inner-spin-button,
+.level-editor input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stat-input:focus {
+  outline: none;
+  border-color: var(--type-accent);
+}
+.stat-total {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #dce6d2;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+.stat-total b {
+  font-size: 18px;
 }
 .stat-row {
   display: flex;

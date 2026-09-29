@@ -16,6 +16,11 @@ export interface PokemonProgress {
   // reste « capturé » au Pokédex, comme dans le jeu. (Absent des données
   // enregistrées avant l'ajout de cette option.)
   evolved?: boolean
+  // Mon Pokémon à moi (une fois capturé) : niveau et stats telles que le jeu
+  // les affiche, saisis à la main. Clés des stats = libellés de l'appli
+  // (PV, Attaque, Défense, Att. Spé, Déf. Spé, Vitesse).
+  level?: number
+  stats?: Record<string, number>
   updatedAt: number
 }
 
@@ -59,7 +64,10 @@ export type PokemonFlag = 'seen' | 'caught' | 'researchDone' | 'shiny'
 
 const STORAGE_KEY = 'pokedex-hisui-progress-v1'
 
-const EMPTY: Required<Omit<PokemonProgress, 'updatedAt'>> = {
+type PokemonState = Required<Omit<PokemonProgress, 'updatedAt' | 'level' | 'stats'>> &
+  Pick<PokemonProgress, 'level' | 'stats'>
+
+const EMPTY: PokemonState = {
   seen: false,
   caught: false,
   researchDone: false,
@@ -72,7 +80,7 @@ export function alphaKey(apiName: string, region: string, place: string): string
   return `${apiName}|${region}|${place}`
 }
 
-// Baron hors emplacement fixe (invasion massive, distorsion, rencontre
+// Baron hors emplacement fixe (apparition massive, distorsion, rencontre
 // aléatoire) : un seul suivi par espèce.
 const OTHER_ALPHA_SUFFIX = '|autre'
 export function otherAlphaKey(apiName: string): string {
@@ -142,7 +150,7 @@ export const useProgressStore = defineStore('progress', () => {
     { deep: true },
   )
 
-  function get(apiName: string): Required<Omit<PokemonProgress, 'updatedAt'>> {
+  function get(apiName: string): PokemonState {
     return { ...EMPTY, ...data.pokemon[apiName] }
   }
 
@@ -182,6 +190,29 @@ export const useProgressStore = defineStore('progress', () => {
       Object.assign(member, { apiName: to.apiName, name: to.name, sprite: to.sprite })
       data.team.updatedAt = now
     }
+  }
+
+  // Niveau et stats de mon Pokémon (null = effacer). Les noter suppose de
+  // l'avoir capturé.
+  function setLevel(apiName: string, level: number | null) {
+    const next = { ...get(apiName), seen: true, caught: true, updatedAt: Date.now() }
+    if (level === null) delete next.level
+    else next.level = Math.min(100, Math.max(1, Math.round(level)))
+    data.pokemon[apiName] = next
+  }
+
+  function setStat(apiName: string, stat: string, value: number | null) {
+    const current = get(apiName)
+    const stats = { ...current.stats }
+    if (value === null || Number.isNaN(value)) delete stats[stat]
+    else stats[stat] = Math.max(0, Math.round(value))
+    data.pokemon[apiName] = { ...current, seen: true, caught: true, stats, updatedAt: Date.now() }
+  }
+
+  // Total de mes stats saisies (null si aucune).
+  function statTotal(apiName: string): number | null {
+    const values = Object.values(get(apiName).stats ?? {})
+    return values.length ? values.reduce((a, b) => a + b, 0) : null
   }
 
   // Annule seulement l'état « a évolué » (la forme évoluée reste capturée).
@@ -242,7 +273,7 @@ export const useProgressStore = defineStore('progress', () => {
     })
     data.team.updatedAt = Date.now()
     // Sans Baron fixe, un Baron dans l'équipe vient forcément d'ailleurs
-    // (invasion, distorsion...) : on le note comme capturé. Avec des Barons
+    // (apparition massive, distorsion...) : on le note comme capturé. Avec des Barons
     // fixes, on ne sait pas lequel : l'utilisateur coche le bon.
     const other = otherAlphaKey(apiName)
     if (alpha && !hasFixedAlphas(apiName) && !getAlpha(other).caught) toggleAlpha(other, 'caught')
@@ -284,6 +315,9 @@ export const useProgressStore = defineStore('progress', () => {
     toggle,
     evolve,
     undoEvolve,
+    setLevel,
+    setStat,
+    statTotal,
     getAlpha,
     isAlphaCaught,
     toggleAlpha,

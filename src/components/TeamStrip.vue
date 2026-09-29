@@ -29,6 +29,9 @@ const emptySlots = computed(() => Math.max(0, TEAM_SIZE - members.value.length))
         >
           <img :src="m.sprite" :alt="m.name" />
           <span class="slot-name">{{ m.name }}</span>
+          <span v-if="progress.get(m.apiName).level" class="slot-level"
+            >Niv. {{ progress.get(m.apiName).level }}</span
+          >
         </button>
         <div class="slot-flags">
           <button
@@ -154,6 +157,11 @@ const emptySlots = computed(() => Math.max(0, TEAM_SIZE - members.value.length))
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.slot-level {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-2);
 }
 .slot-flags {
   display: flex;

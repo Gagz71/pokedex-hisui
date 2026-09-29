@@ -19,7 +19,8 @@ const isOpen = ref(false)
 const selectedName = ref<string | null>(null)
 const history = ref<string[]>([])
 
-const sortField = ref<'number' | 'alpha'>('number')
+// level / power : mes Pokémon, du plus haut niveau (ou total de stats) au plus bas
+const sortField = ref<SortField>('number')
 const sortDirection = ref<'asc' | 'desc'>('asc')
 const isSortMenuOpen = ref(false)
 
@@ -44,7 +45,15 @@ function setTypeFilter(slug: string | null) {
 
 const sortedEntries = computed(() => {
   const list = [...entries.value]
+  // Tri par niveau / total de mes stats : ceux sans valeur passent à la fin.
+  const mineValue = (apiName: string) =>
+    sortField.value === 'level' ? progress.get(apiName).level : progress.statTotal(apiName)
   list.sort((a, b) => {
+    if (sortField.value === 'level' || sortField.value === 'power') {
+      const va = mineValue(a.apiName) ?? -1
+      const vb = mineValue(b.apiName) ?? -1
+      return vb - va || a.entryNumber - b.entryNumber
+    }
     const result =
       sortField.value === 'alpha'
         ? a.name.localeCompare(b.name, 'fr')
@@ -61,7 +70,8 @@ function normalize(str: string): string {
     .toLowerCase()
 }
 
-function setSort(field: 'number' | 'alpha', direction: 'asc' | 'desc') {
+type SortField = 'number' | 'alpha' | 'level' | 'power'
+function setSort(field: SortField, direction: 'asc' | 'desc' = 'desc') {
   sortField.value = field
   sortDirection.value = direction
   isSortMenuOpen.value = false
@@ -906,6 +916,9 @@ function goBack() {
               <li @click="setSort('number', 'desc')">N° décroissant</li>
               <li @click="setSort('alpha', 'asc')">A → Z</li>
               <li @click="setSort('alpha', 'desc')">Z → A</li>
+              <li class="menu-group">Mes Pokémon</li>
+              <li @click="setSort('level')">Niveau (du plus haut)</li>
+              <li @click="setSort('power')">Total de mes stats</li>
             </ul>
           </div>
         </div>

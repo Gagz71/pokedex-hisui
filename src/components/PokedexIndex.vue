@@ -56,6 +56,9 @@ const emit = defineEmits<{
         <span v-if="progress.get(entry.apiName).evolved" class="entry-evolved" title="A évolué"
           >↗</span
         >
+        <span v-if="progress.get(entry.apiName).level" class="entry-level"
+          >Niv. {{ progress.get(entry.apiName).level }}</span
+        >
         <span v-if="notes?.[entry.apiName]" class="entry-note">{{ notes[entry.apiName] }}</span>
       </span>
       <span class="entry-types">
@@ -88,6 +91,16 @@ const emit = defineEmits<{
 }
 .entry-list li:hover {
   background: rgba(0, 0, 0, 0.06);
+}
+.entry-level {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  white-space: nowrap;
 }
 .entry-note {
   display: block;

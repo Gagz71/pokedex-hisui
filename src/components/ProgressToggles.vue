@@ -40,7 +40,7 @@ const TITLES: Record<PokemonFlag, string> = {
 
 // Barons fixes de l'espèce : un suivi par emplacement (chacun est un
 // individu distinct dans le jeu), puis une ligne pour les Barons hors
-// emplacement fixe (invasion massive, distorsion, rencontre aléatoire).
+// emplacement fixe (apparition massive, distorsion, rencontre aléatoire).
 const alphas = computed(() => {
   if (!props.canBeAlpha) return []
   const fixed = (HISUI_LOCATIONS[props.apiName] ?? []).flatMap((loc) =>
@@ -53,7 +53,7 @@ const alphas = computed(() => {
   const other = {
     key: otherAlphaKey(props.apiName),
     place: fixed.length ? 'Autre' : '',
-    region: 'invasion massive, distorsion ou au hasard',
+    region: 'apparition massive, distorsion ou au hasard',
   }
   return [...fixed, other]
 })
