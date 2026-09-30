@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import BookCover from './components/BookCover.vue'
 import PokemonArtCard from './components/PokemonArtCard.vue'
 import PokemonInfoCard from './components/PokemonInfoCard.vue'
@@ -10,6 +10,7 @@ import TeamStrip from './components/TeamStrip.vue'
 import SyncPanel from './components/SyncPanel.vue'
 import ItemPanel from './components/ItemPanel.vue'
 import { EVOLUTION_ITEMS } from './data/evolutionItems'
+import { NO_EVOLUTION } from './data/noEvolution'
 import { useSyncStore } from './stores/sync'
 import { useProgressStore, alphaKey, otherAlphaKey } from './stores/progress'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
@@ -125,6 +126,8 @@ type StatusFilter =
   | 'alpha-defeated'
   | 'alpha-caught'
   | 'alpha-todo'
+  | 'legendary'
+  | 'no-evolution'
 // Regroupées par thème dans le menu Statut
 const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: string }[] }[] = [
   {
@@ -150,8 +153,46 @@ const STATUS_GROUPS: { title: string; filters: { value: StatusFilter; label: str
       { value: 'alpha-todo', label: 'Barons fixes pas encore capturés' },
     ],
   },
+  {
+    title: 'Catégorie',
+    filters: [
+      { value: 'legendary', label: 'Légendaires et fabuleux' },
+      { value: 'no-evolution', label: 'Sans évolution (hors légendaires)' },
+    ],
+  },
 ]
 const STATUS_FILTERS = STATUS_GROUPS.flatMap((g) => g.filters)
+// --- Filtre Lieu : une zone entière, ou une sous-zone précise
+const REGION_ORDER = [
+  'Rusti-Cité',
+  'Plaines Obsidiennes',
+  'Marais Carmin',
+  'Côte Lazuli',
+  'Contrefort Couronné',
+  'Terres Immaculées',
+]
+const LOCATION_GROUPS = REGION_ORDER.map((region) => ({
+  region,
+  places: [
+    ...new Set(
+      Object.values(HISUI_LOCATIONS).flatMap((locs) =>
+        locs.filter((l) => l.region === region).flatMap((l) => l.places ?? []),
+      ),
+    ),
+  ].sort((a, b) => a.localeCompare(b, 'fr')),
+}))
+const placeFilter = ref<{ region: string; place?: string } | null>(null)
+const isPlaceMenuOpen = ref(false)
+function setPlaceFilter(value: { region: string; place?: string } | null) {
+  placeFilter.value = value
+  isPlaceMenuOpen.value = false
+}
+function matchesPlace(apiName: string, filter: { region: string; place?: string }): boolean {
+  return (HISUI_LOCATIONS[apiName] ?? []).some(
+    (l) => l.region === filter.region && (!filter.place || (l.places ?? []).includes(filter.place)),
+  )
+}
+
 // --- Filtre Objet : Pokémon qu'un objet d'évolution fait évoluer
 const itemFilter = ref<string | null>(null)
 const isItemMenuOpen = ref(false)
@@ -194,7 +235,8 @@ function setStatusFilter(value: StatusFilter | null) {
 // « Rencontrés / battus / capturés » : au moins un Baron de l'espèce, fixe ou
 // non. « Avec un Baron fixe » et « pas encore capturés » ne portent que sur
 // les emplacements fixes (les autres Barons n'ont pas de liste finie).
-function matchesStatus(apiName: string, filter: StatusFilter): boolean {
+function matchesStatus(entry: PokedexEntry, filter: StatusFilter): boolean {
+  const apiName = entry.apiName
   const p = progress.get(apiName)
   const fixed = (ALPHA_KEYS[apiName] ?? []).map((k) => progress.getAlpha(k))
   const alphas = [...fixed, progress.getAlpha(otherAlphaKey(apiName))]
@@ -225,6 +267,10 @@ function matchesStatus(apiName: string, filter: StatusFilter): boolean {
       return alphas.some((a) => a.caught)
     case 'alpha-todo':
       return fixed.some((a) => !a.caught)
+    case 'legendary':
+      return entry.rarity !== null
+    case 'no-evolution':
+      return entry.rarity === null && NO_EVOLUTION.has(apiName)
     default:
       return true
   }
@@ -246,13 +292,17 @@ const filteredEntries = computed(() => {
   if (typeFilter.value) {
     list = list.filter((e) => e.typeSlugs.includes(typeFilter.value as string))
   }
+  if (placeFilter.value) {
+    const filter = placeFilter.value
+    list = list.filter((e) => matchesPlace(e.apiName, filter))
+  }
   if (itemFilter.value) {
     const notes = itemNotes.value
     list = list.filter((e) => e.apiName in notes)
   }
   if (statusFilter.value) {
     const filter = statusFilter.value
-    list = list.filter((e) => matchesStatus(e.apiName, filter))
+    list = list.filter((e) => matchesStatus(e, filter))
   }
   if (!query) return list
   return list.filter(
@@ -800,12 +850,62 @@ function handleTypeFilter(slug: string) {
   selectedName.value = null
 }
 
-// Retour à l'index : on repart d'une recherche vide (les filtres Type et
-// Statut, eux, sont gardés).
+// Tous les filtres et la recherche à zéro, menus fermés.
+function resetFilters() {
+  searchQuery.value = ''
+  typeFilter.value = null
+  statusFilter.value = null
+  placeFilter.value = null
+  itemFilter.value = null
+  isTypeMenuOpen.value = isStatusMenuOpen.value = isPlaceMenuOpen.value = false
+  isItemMenuOpen.value = isSortMenuOpen.value = false
+}
+
+// Retour à l'index : l'index complet, sans le filtre qui a mené à la fiche.
 function backToIndex() {
   selectedName.value = null
-  searchQuery.value = ''
+  resetFilters()
 }
+
+// Fermer le livre remet tout à zéro : à la réouverture, on retombe sur
+// l'index complet, trié par numéro, en haut de la liste.
+function closeBook() {
+  isOpen.value = false
+  selectedName.value = null
+  resetFilters()
+  sortField.value = 'number'
+  sortDirection.value = 'asc'
+  isCreditsOpen.value = isSyncOpen.value = false
+  nextTick(() => {
+    document.querySelectorAll('.entry-list').forEach((list) => (list.scrollTop = 0))
+    window.scrollTo(0, 0)
+  })
+}
+
+// --- Pokémon précédent / suivant, dans l'ordre du Pokédex de Hisui
+const byNumber = computed(() => [...entries.value].sort((a, b) => a.entryNumber - b.entryNumber))
+const neighbours = computed(() => {
+  const i = byNumber.value.findIndex((e) => e.apiName === selectedName.value)
+  return {
+    prev: i > 0 ? byNumber.value[i - 1] : null,
+    next: i >= 0 ? (byNumber.value[i + 1] ?? null) : null,
+  }
+})
+// Flèches gauche / droite du clavier (hors saisie dans un champ)
+function onKeydown(e: KeyboardEvent) {
+  if (!selectedName.value || !isOpen.value) return
+  const target = e.target as HTMLElement | null
+  if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+  const to =
+    e.key === 'ArrowLeft'
+      ? neighbours.value.prev
+      : e.key === 'ArrowRight'
+        ? neighbours.value.next
+        : null
+  if (to) handleSelect(to.apiName)
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 function goBack() {
   const previous = history.value.pop()
@@ -825,7 +925,7 @@ function goBack() {
             <span class="sync-dot"></span>
             {{ sync.user ? 'Synchronisé' : 'Synchroniser mes appareils' }}
           </button>
-          <button class="close-tab" @click="isOpen = false">✕ Fermer le livre</button>
+          <button class="close-tab" @click="closeBook">✕ Fermer le livre</button>
         </div>
         <div class="index-toolbar" v-if="!selectedName">
           <input
@@ -877,6 +977,38 @@ function goBack() {
                   :class="{ active: statusFilter === f.value }"
                 >
                   {{ f.label }}
+                </li>
+              </template>
+            </ul>
+          </div>
+
+          <div class="sort-menu">
+            <button class="sort-toggle" @click="isPlaceMenuOpen = !isPlaceMenuOpen">
+              {{ placeFilter ? (placeFilter.place ?? placeFilter.region) : 'Lieu' }}
+              <span class="arrow" :class="{ open: isPlaceMenuOpen }">▾</span>
+            </button>
+            <ul class="sort-options place-options" v-if="isPlaceMenuOpen">
+              <li @click="setPlaceFilter(null)" :class="{ active: !placeFilter }">
+                Tous les lieux
+              </li>
+              <template v-for="group in LOCATION_GROUPS" :key="group.region">
+                <li class="menu-group">{{ group.region }}</li>
+                <li
+                  @click="setPlaceFilter({ region: group.region })"
+                  :class="{ active: placeFilter?.region === group.region && !placeFilter?.place }"
+                >
+                  Toute la zone
+                </li>
+                <li
+                  v-for="place in group.places"
+                  :key="place"
+                  class="place-option"
+                  @click="setPlaceFilter({ region: group.region, place })"
+                  :class="{
+                    active: placeFilter?.place === place && placeFilter?.region === group.region,
+                  }"
+                >
+                  {{ place }}
                 </li>
               </template>
             </ul>
@@ -966,8 +1098,33 @@ function goBack() {
             <template #nav>
               <div class="nav-row">
                 <button class="close-tab" @click="backToIndex">← Retour à l'index</button>
-                <button class="close-tab" v-if="isOpen" @click="isOpen = false">
+                <button class="close-tab" v-if="isOpen" @click="closeBook">
                   ✕ Fermer le livre
+                </button>
+              </div>
+              <!-- Pokémon précédent / suivant dans le Pokédex de Hisui -->
+              <div class="page-nav">
+                <button
+                  class="page-nav-btn"
+                  :disabled="!neighbours.prev"
+                  :title="neighbours.prev ? `Précédent : ${neighbours.prev.name}` : ''"
+                  @click="neighbours.prev && handleSelect(neighbours.prev.apiName)"
+                >
+                  <span class="page-nav-arrow">‹</span>
+                  <span v-if="neighbours.prev" class="page-nav-label">
+                    <small>#{{ neighbours.prev.entryNumber }}</small> {{ neighbours.prev.name }}
+                  </span>
+                </button>
+                <button
+                  class="page-nav-btn next"
+                  :disabled="!neighbours.next"
+                  :title="neighbours.next ? `Suivant : ${neighbours.next.name}` : ''"
+                  @click="neighbours.next && handleSelect(neighbours.next.apiName)"
+                >
+                  <span v-if="neighbours.next" class="page-nav-label">
+                    <small>#{{ neighbours.next.entryNumber }}</small> {{ neighbours.next.name }}
+                  </span>
+                  <span class="page-nav-arrow">›</span>
                 </button>
               </div>
               <button
@@ -975,7 +1132,7 @@ function goBack() {
                 v-if="pokemon.previousEvolution"
                 @click="handleSelect(pokemon.previousEvolution.apiName)"
               >
-                ← {{ pokemon.previousEvolution.name }}
+                ↰ Pré-évolution : {{ pokemon.previousEvolution.name }}
               </button>
             </template>
             <template #footer>
@@ -1012,7 +1169,7 @@ function goBack() {
 
       <div class="spine"></div>
 
-      <BookCover :isOpen="isOpen" @toggle="isOpen = !isOpen" />
+      <BookCover :isOpen="isOpen" @toggle="isOpen ? closeBook() : (isOpen = true)" />
       <CreditsPanel :open="isCreditsOpen" @close="isCreditsOpen = false" />
       <SyncPanel :open="isSyncOpen" @close="isSyncOpen = false" />
     </div>
@@ -1125,6 +1282,56 @@ function goBack() {
 }
 .nav-row .close-tab:hover {
   color: #1a3d1a;
+}
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.page-nav-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #3a4a3a;
+  cursor: pointer;
+}
+.page-nav-btn.next {
+  justify-content: flex-end;
+}
+.page-nav-btn:hover:not(:disabled) {
+  background: #fff;
+  color: #1a3d1a;
+}
+.page-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.page-nav-arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+.page-nav-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-nav-label small {
+  font-weight: 600;
+  opacity: 0.7;
+}
+.place-option {
+  padding-left: 22px !important;
 }
 .close-tab.prev-evo {
   margin: 0 0 14px;
