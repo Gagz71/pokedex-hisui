@@ -55,6 +55,13 @@ const emit = defineEmits<{
               >CC BY-NC-SA 2.5</a
             >.
           </li>
+          <li>
+            <a href="https://www.serebii.net/legendsarceus/" target="_blank" rel="noopener"
+              >Serebii</a
+            >
+            — tables d'apparition extraites du jeu (lieux exacts, modes d'apparition, heure, météo),
+            servant à vérifier les localisations, et liste des Barons garantis.
+          </li>
         </ul>
 
         <h3>Conception et développement</h3>

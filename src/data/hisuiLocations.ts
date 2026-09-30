@@ -1,11 +1,15 @@
 // Localisations à Hisui, par grande région (5 zones + Rusti-Cité).
 // PokeAPI ne fournit aucune donnée d'encounter pour Legends: Arceus, donc ce
 // dataset vient de sources externes :
-//  - Bulbapedia (section « Game locations » de chaque pokémon) pour les lieux
-//    précis : sous-zones, « alentours », conditions (la nuit, arbres qui
-//    tremblent, caisses, requêtes...), apparitions massives et mégapparitions.
-//    Noms de lieux en français repris des tableaux de traduction de ses pages
-//    de lieux, termes officiels vérifiés sur Poképédia ;
+//  - les tables d'apparition du jeu publiées par Serebii (pages « pokearth »
+//    de chaque sous-zone, données extraites du jeu) : lieux exacts et mode
+//    d'apparition (au sol, en vol, dans l'eau, arbres ou gisements qui
+//    tremblent, apparitions massives), heure, météo, rareté (< 5 %) ;
+//  - Bulbapedia (section « Game locations » de chaque pokémon) pour ce que
+//    ces tables ne disent pas : requêtes, caisses, rencontres uniques,
+//    distorsions, mégapparitions. Un lieu que Bulbapedia annonce mais que
+//    les tables ne confirment pas est présenté en « Alentours » (le Pokémon
+//    est bien dans la zone, mais pas rattaché à cette sous-zone) ;
 //  - Poképédia (section « Localisations » de chaque pokémon, et de sa page
 //    « … de Hisui » pour les formes régionales) : zones, sous-zones, Barons,
 //    distorsions spatio-temporelles, rencontres uniques ;
@@ -28,6 +32,7 @@ export interface LocationEntry {
   // Sous-zones où on le trouve (filtre Lieu de l'index), Barons compris.
   places?: string[]
   // Emplacements des Barons fixes dans cette zone (niveau quand il est connu).
+  // « (non confirmé) » : absent de la liste des Barons garantis de Serebii.
   // Les Barons des apparitions massives ne sont pas listés.
   alphas?: string[]
 }
@@ -38,16 +43,17 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        "Étendue Polaire, Sentier de l'Arène (alentours), Glacier Séracrawl (alentours), Terrasse du Glacier · Mégapparitions",
-      places: ['Étendue Polaire', "Sentier de l'Arène", 'Glacier Séracrawl', 'Terrasse du Glacier'],
+        "Terrasse du Glacier, Étendue Polaire · Apparitions massives : Terrasse du Glacier · Alentours : Sentier de l'Arène, Glacier Séracrawl · Mégapparitions",
+      places: ['Glacier Séracrawl', "Sentier de l'Arène", 'Terrasse du Glacier', 'Étendue Polaire'],
       alphas: ['Étendue Polaire'],
     },
   ],
   abra: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Rive Filevent, Plaine Littorella · Mégapparitions',
-      places: ['Rive Filevent', 'Plaine Littorella'],
+      details:
+        'Plaine Littorella, Rive Filevent · Apparitions massives : Rive Filevent · Mégapparitions',
+      places: ['Plaine Littorella', 'Rive Filevent'],
     },
     { region: 'Terres Immaculées', details: 'Lac Savoir · Mégapparitions', places: ['Lac Savoir'] },
   ],
@@ -56,41 +62,45 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        'Mont des Capumain (aussi dans les arbres qui tremblent), Crique Paisible · Mégapparitions',
-      places: ['Mont des Capumain', 'Crique Paisible'],
+        'Crique Paisible · Mont des Capumain (aussi dans les arbres qui tremblent) · Mégapparitions',
+      places: ['Crique Paisible', 'Mont des Capumain'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Vallée Enneigée, Étendue Polaire, Chute d'Oglacé (alentours), Sentier de l'Arène (alentours), Glacier Séracrawl (alentours), Source Panora-Neige, Terrasse du Glacier, Rocher Esprit, Hameau Perle (alentours) · Mégapparitions",
+        "Pente de l'Avalanche, Rocher Esprit, Sentier de l'Arène, Source Panora-Neige, Terrasse du Glacier, Vallée Enneigée, Étendue Polaire · Alentours : Chute d'Oglacé, Glacier Séracrawl, Hameau Perle · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Vallée Enneigée',
-        'Étendue Polaire',
         "Chute d'Oglacé",
-        "Sentier de l'Arène",
         'Glacier Séracrawl',
+        'Hameau Perle',
+        "Pente de l'Avalanche",
+        'Rocher Esprit',
+        "Sentier de l'Arène",
         'Source Panora-Neige',
         'Terrasse du Glacier',
-        'Rocher Esprit',
-        'Hameau Perle',
+        'Vallée Enneigée',
+        'Étendue Polaire',
       ],
     },
   ],
   alakazam: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plaine Littorella · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Plaine Littorella'],
       alphas: ['Plaine Littorella (niv. 60)'],
     },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
-    { region: 'Terres Immaculées', details: 'Lac Savoir · Mégapparitions', places: ['Lac Savoir'] },
+    {
+      region: 'Terres Immaculées',
+      details: 'Alentours : Lac Savoir · Mégapparitions',
+      places: ['Lac Savoir'],
+    },
   ],
   ambipom: [
     {
       region: 'Côte Lazuli',
-      details: 'Mont des Capumain, Crique Paisible · Mégapparitions',
+      details: 'Mont des Capumain · Apparitions massives : Mont des Capumain · Mégapparitions',
       places: ['Mont des Capumain', 'Crique Paisible'],
       alphas: ['Crique Paisible'],
     },
@@ -98,13 +108,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Chute d'Oglacé (alentours), Sentier de l'Arène (alentours), Glacier Séracrawl (alentours), Rocher Esprit · Mégapparitions",
+        "Pente de l'Avalanche, Rocher Esprit · Apparitions massives : Pente de l'Avalanche · Alentours : Chute d'Oglacé, Sentier de l'Arène, Glacier Séracrawl · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
         "Chute d'Oglacé",
-        "Sentier de l'Arène",
         'Glacier Séracrawl',
+        "Pente de l'Avalanche",
         'Rocher Esprit',
+        "Sentier de l'Arène",
       ],
     },
   ],
@@ -136,8 +146,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée et alentours, Arène Ursa (alentours), Champ Bourdonne (alentours), Lac Courage · Mégapparitions',
-      places: ['Marais Bouchebée', 'Arène Ursa', 'Champ Bourdonne', 'Lac Courage'],
+        "Dans l'eau : Lac Courage, Marais Bouchebée · Alentours : Arène Ursa, Champ Bourdonne · Mégapparitions",
+      places: ['Arène Ursa', 'Champ Bourdonne', 'Lac Courage', 'Marais Bouchebée'],
     },
     { region: 'Contrefort Couronné', details: 'Grotte des Égarés', places: ['Grotte des Égarés'] },
   ],
@@ -149,88 +159,93 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   basculin: [
     {
       region: 'Côte Lazuli',
-      details:
-        'Baie Sérénité, Plage Long-des-Îles (alentours), Île Crache-Feu (alentours) · Mégapparitions',
+      details: 'Alentours : Baie Sérénité, Plage Long-des-Îles, Île Crache-Feu · Mégapparitions',
       places: ['Baie Sérénité', 'Plage Long-des-Îles', 'Île Crache-Feu'],
     },
-    { region: 'Contrefort Couronné', details: 'Source Féérique', places: ['Source Féérique'] },
+    {
+      region: 'Contrefort Couronné',
+      details: "Dans l'eau : Source Féérique",
+      places: ['Source Féérique'],
+    },
     {
       region: 'Terres Immaculées',
-      details: 'Glacier Séracrawl (alentours), Rocher Esprit, Lac Savoir, Hameau Perle (alentours)',
-      places: ['Glacier Séracrawl', 'Rocher Esprit', 'Lac Savoir', 'Hameau Perle'],
+      details:
+        "Dans l'eau : Lac Savoir, Rocher Esprit · Alentours : Glacier Séracrawl, Hameau Perle",
+      places: ['Glacier Séracrawl', 'Hameau Perle', 'Lac Savoir', 'Rocher Esprit'],
     },
   ],
   bastiodon: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' }],
   beautifly: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Le jour : Champ Flora, Bocage Agité, Forêt Lointaine · Mégapparitions',
-      places: ['Champ Flora', 'Bocage Agité', 'Forêt Lointaine'],
+      details:
+        'En vol : Bocage Agité (le jour), Champ Flora (le jour), Forêt Lointaine (le jour) · Apparitions massives : Bocage Agité · Mégapparitions',
+      places: ['Bocage Agité', 'Champ Flora', 'Forêt Lointaine'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Le jour : Lagune des Bains, Cap du Voile',
-      places: ['Lagune des Bains', 'Cap du Voile'],
+      details: 'En vol : Cap du Voile (le jour), Lagune des Bains (le jour)',
+      places: ['Cap du Voile', 'Lagune des Bains'],
     },
   ],
   bergmite: [
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche (alentours), Vallée Enneigée (alentours), Étendue Polaire, Sentier de l'Arène, Glacier Séracrawl, Terrasse du Glacier (alentours), Voie de Glace, Souterrain de Givre, Chambre des Piliers · Mégapparitions",
+        "Chambre des Piliers, Glacier Séracrawl, Sentier de l'Arène, Souterrain de Givre, Voie de Glace, Étendue Polaire · Gisements qui tremblent : Chambre des Piliers, Glacier Séracrawl, Sentier de l'Arène, Souterrain de Givre, Vallée Enneigée, Voie de Glace · Apparitions massives : Sentier de l'Arène · Alentours : Pente de l'Avalanche, Terrasse du Glacier · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Vallée Enneigée',
-        'Étendue Polaire',
-        "Sentier de l'Arène",
-        'Glacier Séracrawl',
-        'Terrasse du Glacier',
-        'Voie de Glace',
-        'Souterrain de Givre',
         'Chambre des Piliers',
+        'Glacier Séracrawl',
+        "Pente de l'Avalanche",
+        "Sentier de l'Arène",
+        'Souterrain de Givre',
+        'Terrasse du Glacier',
+        'Vallée Enneigée',
+        'Voie de Glace',
+        'Étendue Polaire',
       ],
     },
   ],
   bibarel: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Digue de l'Estuaire et alentours · Mégapparitions",
+      details: "Digue de l'Estuaire · Mégapparitions",
       places: ["Digue de l'Estuaire"],
       alphas: ["Digue de l'Estuaire (niv. 16)"],
     },
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée, Arène Ursa (alentours), Champ Bourdonne',
-      places: ['Marais Bouchebée', 'Arène Ursa', 'Champ Bourdonne'],
+      details: 'Champ Bourdonne, Marais Bouchebée · Alentours : Arène Ursa',
+      places: ['Arène Ursa', 'Champ Bourdonne', 'Marais Bouchebée'],
     },
     { region: 'Côte Lazuli', details: 'Chemin de la Source', places: ['Chemin de la Source'] },
     {
       region: 'Terres Immaculées',
-      details: 'Glacier Séracrawl et alentours, Terrasse du Glacier (alentours) · Mégapparitions',
+      details: 'Glacier Séracrawl · Alentours : Terrasse du Glacier · Mégapparitions',
       places: ['Glacier Séracrawl', 'Terrasse du Glacier'],
     },
   ],
   bidoof: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Colline Ambition, Val Ferrache, Digue de l'Estuaire et alentours · Mégapparitions",
-      places: ['Colline Ambition', 'Val Ferrache', "Digue de l'Estuaire"],
+      details: "Colline Ambition, Digue de l'Estuaire, Val Ferrache · Mégapparitions",
+      places: ['Colline Ambition', "Digue de l'Estuaire", 'Val Ferrache'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée, Arène Ursa (alentours), Champ Bourdonne',
-      places: ['Marais Bouchebée', 'Arène Ursa', 'Champ Bourdonne'],
+      details: 'Champ Bourdonne, Marais Bouchebée · Alentours : Arène Ursa',
+      places: ['Arène Ursa', 'Champ Bourdonne', 'Marais Bouchebée'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Glacier Séracrawl (alentours), Terrasse du Glacier (alentours) · Mégapparitions',
+      details: 'Alentours : Glacier Séracrawl, Terrasse du Glacier · Mégapparitions',
       places: ['Glacier Séracrawl', 'Terrasse du Glacier'],
     },
   ],
   blissey: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Chute d'Obsidienne (alentours)",
+      details: 'Uniquement en Baron',
       places: ["Chute d'Obsidienne"],
       alphas: ["Chute d'Obsidienne (niv. 62)"],
     },
@@ -245,20 +260,19 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        'Lisière du Hameau (gisements qui tremblent), Col Mer-de-Nuages et alentours · Mégapparitions',
-      places: ['Lisière du Hameau', 'Col Mer-de-Nuages'],
+        'Gisements qui tremblent : Lisière du Hameau · Apparitions massives : Col Mer-de-Nuages · Mégapparitions',
+      places: ['Col Mer-de-Nuages', 'Lisière du Hameau'],
     },
     {
       region: 'Contrefort Couronné',
-      details:
-        'Temple Céleste (gisements qui tremblent), Temple Céleste (alentours, apparitions massives)',
+      details: 'Gisements qui tremblent : Temple Céleste',
       places: ['Temple Céleste'],
     },
   ],
   braviary: [
     {
       region: 'Terres Immaculées',
-      details: 'Lac Savoir (alentours, aussi en apparitions massives, en vol) · Mégapparitions',
+      details: 'Apparitions massives : Lac Savoir · Mégapparitions',
       places: ['Lac Savoir'],
     },
   ],
@@ -267,19 +281,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Ancienne Carrière, Falaise Calade (alentours), Temple Céleste (alentours), Grotte Préhistorique (alentours), Col Pierlevé (le jour) · Mégapparitions',
+        'Ancienne Carrière, Col Pierlevé (le jour) · Alentours : Falaise Calade, Temple Céleste, Grotte Préhistorique · Mégapparitions',
       places: [
         'Ancienne Carrière',
-        'Falaise Calade',
-        'Temple Céleste',
-        'Grotte Préhistorique',
         'Col Pierlevé',
+        'Falaise Calade',
+        'Grotte Préhistorique',
+        'Temple Céleste',
       ],
       alphas: ['Falaise Calade'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Lac Savoir, Temple de Frimapic · Mégapparitions',
+      details:
+        'Lac Savoir, Temple de Frimapic · Apparitions massives : Lac Savoir · Mégapparitions',
       places: ['Lac Savoir', 'Temple de Frimapic'],
     },
   ],
@@ -288,18 +303,22 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Ancienne Carrière, Falaise Calade (alentours), Temple Céleste (alentours), Grotte Préhistorique (alentours), Col Pierlevé (le jour) · Mégapparitions',
+        'Ancienne Carrière, Col Pierlevé (le jour) · Gisements qui tremblent : Falaise Calade, Forêt des Égarés, Grotte Préhistorique, Sentier des Pèlerins, Source Reculée · Alentours : Temple Céleste · Mégapparitions',
       places: [
         'Ancienne Carrière',
-        'Falaise Calade',
-        'Temple Céleste',
-        'Grotte Préhistorique',
         'Col Pierlevé',
+        'Falaise Calade',
+        'Forêt des Égarés',
+        'Grotte Préhistorique',
+        'Sentier des Pèlerins',
+        'Source Reculée',
+        'Temple Céleste',
       ],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Lac Savoir, Temple de Frimapic · Mégapparitions',
+      details:
+        'Lac Savoir, Temple de Frimapic · Gisements qui tremblent : Lac Savoir · Apparitions massives : Lac Savoir · Mégapparitions',
       places: ['Lac Savoir', 'Temple de Frimapic'],
     },
   ],
@@ -307,126 +326,131 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "Plaine d'Or (aussi en apparitions massives, le jour), Marais Bouchebée, Lande Herbacoton (alentours) · Mégapparitions",
-      places: ["Plaine d'Or", 'Marais Bouchebée', 'Lande Herbacoton'],
+        "Marais Bouchebée, Plaine d'Or (le jour) · Apparitions massives : Plaine d'Or · Alentours : Lande Herbacoton · Mégapparitions",
+      places: ['Lande Herbacoton', 'Marais Bouchebée', "Plaine d'Or"],
     },
-    { region: 'Contrefort Couronné', details: 'Source Féérique', places: ['Source Féérique'] },
+    {
+      region: 'Contrefort Couronné',
+      details: 'Source Féérique · Apparitions massives : Source Féérique',
+      places: ['Source Féérique'],
+    },
   ],
   buizel: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Val Ferrache, Pont Rocheux (alentours), Rive Filevent · Mégapparitions',
-      places: ['Val Ferrache', 'Pont Rocheux', 'Rive Filevent'],
+      details: 'Rive Filevent, Val Ferrache · Alentours : Pont Rocheux · Mégapparitions',
+      places: ['Pont Rocheux', 'Rive Filevent', 'Val Ferrache'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Plage Ginkgo, Mont des Capumain, Lagune des Bains',
-      places: ['Plage Ginkgo', 'Mont des Capumain', 'Lagune des Bains'],
+      details:
+        'Lagune des Bains, Mont des Capumain, Plage Ginkgo · Apparitions massives : Lagune des Bains',
+      places: ['Lagune des Bains', 'Mont des Capumain', 'Plage Ginkgo'],
     },
   ],
   buneary: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine et alentours · Mégapparitions',
+      details: 'Forêt Lointaine · Mégapparitions',
       places: ['Forêt Lointaine'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Étendue Polaire, Source Panora-Neige · Mégapparitions',
-      places: ['Étendue Polaire', 'Source Panora-Neige'],
+      details: "Sentier de l'Arène, Source Panora-Neige, Étendue Polaire · Mégapparitions",
+      places: ["Sentier de l'Arène", 'Source Panora-Neige', 'Étendue Polaire'],
     },
   ],
   burmy: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Cape Plante, arbres qui tremblent : Bocage Agité, Pont Rocheux, Sentier Cer-Mont, Plateau Cer-Mont, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire, Chute d'Obsidienne",
+        "Arbres qui tremblent : Bocage Agité, Cellier Champêtre, Chute d'Obsidienne, Digue de l'Estuaire, Plateau Cer-Mont, Pont Rocheux, Rive Filevent, Sentier Cer-Mont",
       places: [
         'Bocage Agité',
-        'Pont Rocheux',
-        'Sentier Cer-Mont',
-        'Plateau Cer-Mont',
-        'Rive Filevent',
         'Cellier Champêtre',
-        "Digue de l'Estuaire",
         "Chute d'Obsidienne",
+        "Digue de l'Estuaire",
+        'Plateau Cer-Mont',
+        'Pont Rocheux',
+        'Rive Filevent',
+        'Sentier Cer-Mont',
       ],
     },
     {
       region: 'Marais Carmin',
       details:
-        "Cape Sable, arbres qui tremblent : Plaine d'Or, Marais Bouchebée, Île de l'Épreuve, Arène Ursa, Marais Carlate (alentours), Col Mer-de-Nuages (alentours), Ruines Brumeuses, Hameau Diamant (alentours), Lisière du Hameau (alentours), Pente des Gringoles, Lande Herbacoton, Champ Bourdonne, Lac Courage (alentours)",
+        "Arbres qui tremblent : Arène Ursa, Col Mer-de-Nuages, Marais Bouchebée, Pente des Gringoles, Plaine d'Or, Ruines Brumeuses, Île de l'Épreuve · Alentours : Marais Carlate, Hameau Diamant, Lisière du Hameau, Lande Herbacoton, Champ Bourdonne, Lac Courage (arbres qui tremblent)",
       places: [
-        "Plaine d'Or",
-        'Marais Bouchebée',
-        "Île de l'Épreuve",
         'Arène Ursa',
-        'Marais Carlate',
-        'Col Mer-de-Nuages',
-        'Ruines Brumeuses',
-        'Hameau Diamant',
-        'Lisière du Hameau',
-        'Pente des Gringoles',
-        'Lande Herbacoton',
         'Champ Bourdonne',
+        'Col Mer-de-Nuages',
+        'Hameau Diamant',
         'Lac Courage',
+        'Lande Herbacoton',
+        'Lisière du Hameau',
+        'Marais Bouchebée',
+        'Marais Carlate',
+        'Pente des Gringoles',
+        "Plaine d'Or",
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Cape Déchet, arbres qui tremblent : Coteau du Passage, Plage Ginkgo, Mont des Capumain, Lagune des Bains, Crique Paisible, Rive des Revenants (alentours), Presqu'île Tombolo, Main de Sable, Baie Sérénité, Plage de l'Errance, Bois Brise-Vent (alentours), Chemin de la Source, Plage Long-des-Îles (alentours), Cap du Voile, Arche Poissigrand, Havre des Algues, Île Crache-Feu (alentours)",
+        "Arbres qui tremblent : Arche Poissigrand, Baie Sérénité, Cap du Voile, Chemin de la Source, Coteau du Passage, Crique Paisible, Havre des Algues, Lagune des Bains, Main de Sable, Mont des Capumain, Plage Ginkgo, Plage de l'Errance, Presqu'île Tombolo · Alentours : Rive des Revenants, Bois Brise-Vent, Plage Long-des-Îles, Île Crache-Feu (arbres qui tremblent)",
       places: [
-        'Coteau du Passage',
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
-        'Crique Paisible',
-        'Rive des Revenants',
-        "Presqu'île Tombolo",
-        'Main de Sable',
-        'Baie Sérénité',
-        "Plage de l'Errance",
-        'Bois Brise-Vent',
-        'Chemin de la Source',
-        'Plage Long-des-Îles',
-        'Cap du Voile',
         'Arche Poissigrand',
+        'Baie Sérénité',
+        'Bois Brise-Vent',
+        'Cap du Voile',
+        'Chemin de la Source',
+        'Coteau du Passage',
+        'Crique Paisible',
         'Havre des Algues',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        'Plage Long-des-Îles',
+        "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
         'Île Crache-Feu',
       ],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        "Cape Sable, arbres qui tremblent : Hauts de l'Humilité, Ancienne Carrière (alentours), Falaise Calade, Temple Céleste, Sentier Céleste (alentours), Parvis des Prières, Col Pierlevé, Source Féérique, Passage des Nuages",
+        "Arbres qui tremblent : Col Pierlevé, Falaise Calade, Hauts de l'Humilité, Parvis des Prières, Passage des Nuages, Source Féérique, Temple Céleste · Alentours : Ancienne Carrière, Sentier Céleste",
       places: [
-        "Hauts de l'Humilité",
         'Ancienne Carrière',
-        'Falaise Calade',
-        'Temple Céleste',
-        'Sentier Céleste',
-        'Parvis des Prières',
         'Col Pierlevé',
-        'Source Féérique',
+        'Falaise Calade',
+        "Hauts de l'Humilité",
+        'Parvis des Prières',
         'Passage des Nuages',
+        'Sentier Céleste',
+        'Source Féérique',
+        'Temple Céleste',
       ],
     },
     {
       region: 'Terres Immaculées',
       details:
-        "Cape Déchet, arbres qui tremblent : Pente de l'Avalanche, Vallée Enneigée, Étendue Polaire, Chute d'Oglacé, Sentier de l'Arène, Glacier Séracrawl (alentours), Terrasse du Glacier, Rocher Esprit, Lac Savoir, Hameau Perle (alentours)",
+        "Arbres qui tremblent : Chute d'Oglacé, Lac Savoir, Pente de l'Avalanche, Rocher Esprit, Sentier de l'Arène, Terrasse du Glacier, Vallée Enneigée, Étendue Polaire · Alentours : Glacier Séracrawl, Hameau Perle (arbres qui tremblent)",
       places: [
+        "Chute d'Oglacé",
+        'Glacier Séracrawl',
+        'Hameau Perle',
+        'Lac Savoir',
         "Pente de l'Avalanche",
+        'Rocher Esprit',
+        "Sentier de l'Arène",
+        'Terrasse du Glacier',
         'Vallée Enneigée',
         'Étendue Polaire',
-        "Chute d'Oglacé",
-        "Sentier de l'Arène",
-        'Glacier Séracrawl',
-        'Terrasse du Glacier',
-        'Rocher Esprit',
-        'Lac Savoir',
-        'Hameau Perle',
       ],
     },
   ],
@@ -434,16 +458,16 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "Plaine d'Or et alentours, Marais Bouchebée, Île de l'Épreuve, Col Mer-de-Nuages, Ruines Brumeuses, Hameau Diamant (alentours), Lande Herbacoton (alentours), Lac Courage (alentours) · Mégapparitions",
+        "En vol : Col Mer-de-Nuages, Marais Bouchebée, Plaine d'Or, Ruines Brumeuses, Île de l'Épreuve · Apparitions massives : Plaine d'Or · Alentours : Hameau Diamant, Lande Herbacoton, Lac Courage · Mégapparitions",
       places: [
-        "Plaine d'Or",
-        'Marais Bouchebée',
-        "Île de l'Épreuve",
         'Col Mer-de-Nuages',
-        'Ruines Brumeuses',
         'Hameau Diamant',
-        'Lande Herbacoton',
         'Lac Courage',
+        'Lande Herbacoton',
+        'Marais Bouchebée',
+        "Plaine d'Or",
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
       alphas: ['Lande Herbacoton'],
     },
@@ -458,35 +482,36 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   cascoon: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'La nuit : Champ Flora, Val Ferrache, Forêt Lointaine · Mégapparitions',
-      places: ['Champ Flora', 'Val Ferrache', 'Forêt Lointaine'],
+      details:
+        'Champ Flora (la nuit), Forêt Lointaine (la nuit), Val Ferrache (la nuit) · Apparitions massives : Champ Flora · Mégapparitions',
+      places: ['Champ Flora', 'Forêt Lointaine', 'Val Ferrache'],
     },
   ],
   chansey: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Val Ferrache (alentours, apparitions massives), Chute d'Obsidienne (alentours)",
-      places: ['Val Ferrache', "Chute d'Obsidienne"],
+      details: "Alentours : Val Ferrache (apparitions massives), Chute d'Obsidienne",
+      places: ["Chute d'Obsidienne", 'Val Ferrache'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Lande Herbacoton (apparitions massives)',
+      details: 'Apparitions massives : Lande Herbacoton',
       places: ['Lande Herbacoton'],
     },
     {
       region: 'Côte Lazuli',
-      details: "Crique Paisible, Presqu'île Tombolo et alentours · Mégapparitions",
+      details: "Crique Paisible · Apparitions massives : Presqu'île Tombolo · Mégapparitions",
       places: ['Crique Paisible', "Presqu'île Tombolo"],
       alphas: ["Presqu'île Tombolo"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Source Reculée (apparitions massives)',
+      details: 'Alentours : Source Reculée (apparitions massives)',
       places: ['Source Reculée'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche",
+      details: "Pente de l'Avalanche · Apparitions massives : Pente de l'Avalanche",
       places: ["Pente de l'Avalanche"],
     },
   ],
@@ -494,42 +519,50 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Mégapparitions' },
     {
       region: 'Côte Lazuli',
-      details: 'Rive des Revenants (aussi en apparitions massives, le jour) · Mégapparitions',
+      details:
+        'En vol : Rive des Revenants (le jour) · Apparitions massives : Rive des Revenants · Mégapparitions',
       places: ['Rive des Revenants'],
     },
   ],
   cherrim: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine (arbres qui tremblent)',
+      details: 'Alentours : Forêt Lointaine (arbres qui tremblent)',
       places: ['Forêt Lointaine'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée (arbres qui tremblent)',
+      details: 'Alentours : Marais Bouchebée (arbres qui tremblent)',
       places: ['Marais Bouchebée'],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        'Arbres qui tremblent : Source Reculée, Grotte Préhistorique (alentours), Mont des Gringoles',
-      places: ['Source Reculée', 'Grotte Préhistorique', 'Mont des Gringoles'],
+        'Arbres qui tremblent : Mont des Gringoles, Source Reculée · Alentours : Grotte Préhistorique',
+      places: ['Grotte Préhistorique', 'Mont des Gringoles', 'Source Reculée'],
     },
   ],
   cherubi: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine (apparitions massives)',
+      details: 'Apparitions massives : Forêt Lointaine',
       places: ['Forêt Lointaine'],
     },
-    { region: 'Marais Carmin', details: 'Rencontre sauvage (lieu précis non répertorié)' },
-    { region: 'Contrefort Couronné', details: 'Rencontre sauvage (lieu précis non répertorié)' },
+    {
+      region: 'Marais Carmin',
+      details: 'Arbres qui tremblent, dans un coin sans nom de sous-zone',
+    },
+    {
+      region: 'Contrefort Couronné',
+      details: 'Arbres qui tremblent : Mont des Gringoles, Source Reculée',
+      places: ['Mont des Gringoles', 'Source Reculée'],
+    },
   ],
   chimchar: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Plateau Cer-Mont, Rive Filevent (un seul, pendant la requête 20), Île Rosa Rugosa · Mégapparitions',
+        'Plateau Cer-Mont, Île Rosa Rugosa · Apparitions massives : Île Rosa Rugosa · Rive Filevent (un seul, pendant la requête 20) · Mégapparitions',
       places: ['Plateau Cer-Mont', 'Rive Filevent', 'Île Rosa Rugosa'],
     },
   ],
@@ -537,12 +570,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Sentier Céleste, Grotte Préhistorique (apparitions massives), Parvis des Prières · Mégapparitions',
-      places: ['Sentier Céleste', 'Grotte Préhistorique', 'Parvis des Prières'],
+        'Parvis des Prières, Sentier Céleste · Alentours : Grotte Préhistorique (apparitions massives) · Mégapparitions',
+      places: ['Grotte Préhistorique', 'Parvis des Prières', 'Sentier Céleste'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Lac Savoir',
+      details: 'Lac Savoir · Apparitions massives : Lac Savoir',
       places: ['Lac Savoir'],
       alphas: ['Lac Savoir'],
     },
@@ -550,15 +583,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   chingling: [
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte Préhistorique (apparitions massives), Parvis des Prières · Mégapparitions',
+      details:
+        'Parvis des Prières · Alentours : Grotte Préhistorique (apparitions massives) · Mégapparitions',
       places: ['Grotte Préhistorique', 'Parvis des Prières'],
     },
-    { region: 'Terres Immaculées', details: 'Lac Savoir', places: ['Lac Savoir'] },
+    {
+      region: 'Terres Immaculées',
+      details: 'Lac Savoir · Apparitions massives : Lac Savoir',
+      places: ['Lac Savoir'],
+    },
   ],
   clefable: [
     {
       region: 'Contrefort Couronné',
-      details: 'Source Féérique (la nuit) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Source Féérique'],
       alphas: ['Source Féérique'],
     },
@@ -567,7 +605,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Source Féérique (la nuit) · Mégapparitions',
+      details:
+        'Source Féérique (la nuit) · Apparitions massives : Source Féérique · Mégapparitions',
       places: ['Source Féérique'],
     },
   ],
@@ -575,23 +614,29 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Source Féérique (la nuit) · Mégapparitions',
+      details:
+        'Source Féérique (la nuit) · Apparitions massives : Source Féérique · Mégapparitions',
       places: ['Source Féérique'],
     },
   ],
   combee: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Bocage Agité, Forêt Lointaine (alentours), Tunnel de Fer (alentours)',
-      places: ['Bocage Agité', 'Forêt Lointaine', 'Tunnel de Fer'],
+      details:
+        'Bocage Agité · Arbres qui tremblent : Forêt Lointaine, Île Rosa Rugosa · Alentours : Tunnel de Fer',
+      places: ['Bocage Agité', 'Forêt Lointaine', 'Tunnel de Fer', 'Île Rosa Rugosa'],
     },
     {
       region: 'Marais Carmin',
       details:
-        'Col Mer-de-Nuages, Lande Herbacoton (alentours), Champ Bourdonne (alentours), Lac Courage (alentours)',
-      places: ['Col Mer-de-Nuages', 'Lande Herbacoton', 'Champ Bourdonne', 'Lac Courage'],
+        'Col Mer-de-Nuages · Arbres qui tremblent : Champ Bourdonne, Lande Herbacoton · Apparitions massives : Col Mer-de-Nuages · Alentours : Lac Courage',
+      places: ['Champ Bourdonne', 'Col Mer-de-Nuages', 'Lac Courage', 'Lande Herbacoton'],
     },
-    { region: 'Côte Lazuli', details: 'Mont des Capumain', places: ['Mont des Capumain'] },
+    {
+      region: 'Côte Lazuli',
+      details: 'Mont des Capumain · Arbres qui tremblent : Mont des Capumain',
+      places: ['Mont des Capumain'],
+    },
   ],
   cranidos: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' }],
   cresselia: [
@@ -605,12 +650,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "Marais Bouchebée, Île de l'Épreuve, Plateau Tourbeux (alentours), Marais Carlate · Mégapparitions",
-      places: ['Marais Bouchebée', "Île de l'Épreuve", 'Plateau Tourbeux', 'Marais Carlate'],
+        "Marais Bouchebée, Marais Carlate, Île de l'Épreuve · Apparitions massives : Marais Bouchebée · Alentours : Plateau Tourbeux · Mégapparitions",
+      places: ['Marais Bouchebée', 'Marais Carlate', 'Plateau Tourbeux', "Île de l'Épreuve"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours)',
+      details: 'Alentours : Ancienne Carrière',
       places: ['Ancienne Carrière'],
     },
   ],
@@ -618,11 +663,11 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte des Égarés',
+      details: 'Uniquement en Baron',
       places: ['Grotte des Égarés'],
       alphas: ['Grotte des Égarés'],
     },
-    { region: 'Terres Immaculées', details: "Chute d'Oglacé (en vol)", places: ["Chute d'Oglacé"] },
+    { region: 'Terres Immaculées', details: "En vol : Chute d'Oglacé", places: ["Chute d'Oglacé"] },
   ],
   cyndaquil: [
     { region: 'Rusti-Cité', details: 'Pokémon de départ, offert au Siège du Groupe Galaxie' },
@@ -668,8 +713,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Marais Carmin', details: 'Mégapparitions' },
     {
       region: 'Côte Lazuli',
-      details: "Plage Ginkgo, Plage de l'Errance (apparitions massives) · Mégapparitions",
-      places: ['Plage Ginkgo', "Plage de l'Errance"],
+      details: "Apparitions massives : Plage de l'Errance · Mégapparitions",
+      places: ["Plage de l'Errance", 'Plage Ginkgo'],
       alphas: ['Plage Ginkgo'],
     },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
@@ -678,99 +723,99 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'La nuit : Île Rosa Rugosa, Plaine Littorella, Lac Vérité et alentours · Mégapparitions',
-      places: ['Île Rosa Rugosa', 'Plaine Littorella', 'Lac Vérité'],
+        'Lac Vérité (la nuit), Plaine Littorella (la nuit), Île Rosa Rugosa (la nuit) · En vol : Plaine Littorella (la nuit), Île Rosa Rugosa (la nuit) · Mégapparitions',
+      places: ['Lac Vérité', 'Plaine Littorella', 'Île Rosa Rugosa'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Côte Lazuli',
       details:
-        "La nuit : Coteau du Passage, Plage Ginkgo (alentours), Mont des Capumain (alentours), Lagune des Bains et alentours, Crique Paisible (alentours), Rive des Revenants, Presqu'île Tombolo (alentours), Main de Sable et alentours, Baie Sérénité, Plage de l'Errance (alentours), Plage Long-des-Îles (alentours, apparitions massives à proximité), Arche Poissigrand, Havre des Algues, Île Crache-Feu",
+        "Baie Sérénité (la nuit), Lagune des Bains (la nuit) · En vol : Baie Sérénité (la nuit), Coteau du Passage (la nuit), Lagune des Bains (la nuit), Main de Sable (la nuit), Rive des Revenants (la nuit) · Dans l'eau : Arche Poissigrand (la nuit), Baie Sérénité (la nuit), Havre des Algues (la nuit) · Alentours : Plage Ginkgo (la nuit), Mont des Capumain (la nuit), Crique Paisible (la nuit), Presqu'île Tombolo (la nuit), Plage de l'Errance (la nuit), Plage Long-des-Îles (apparitions massives à proximité, la nuit), Île Crache-Feu (la nuit)",
       places: [
-        'Coteau du Passage',
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
-        'Crique Paisible',
-        'Rive des Revenants',
-        "Presqu'île Tombolo",
-        'Main de Sable',
-        'Baie Sérénité',
-        "Plage de l'Errance",
-        'Plage Long-des-Îles',
         'Arche Poissigrand',
+        'Baie Sérénité',
+        'Coteau du Passage',
+        'Crique Paisible',
         'Havre des Algues',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        'Plage Long-des-Îles',
+        "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
         'Île Crache-Feu',
       ],
     },
     {
       region: 'Terres Immaculées',
       details:
-        'La nuit : Étendue Polaire, Glacier Séracrawl, Terrasse du Glacier (aussi en apparitions massives), Rocher Esprit · Mégapparitions',
-      places: ['Étendue Polaire', 'Glacier Séracrawl', 'Terrasse du Glacier', 'Rocher Esprit'],
+        'Glacier Séracrawl (la nuit), Rocher Esprit (la nuit), Terrasse du Glacier (la nuit), Étendue Polaire (la nuit) · Apparitions massives : Terrasse du Glacier · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Rocher Esprit', 'Terrasse du Glacier', 'Étendue Polaire'],
     },
   ],
   drifloon: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        'La nuit : Colline Ambition, Champ Flora, Val Ferrache, Pont Rocheux (alentours), Sentier Cer-Mont, Rive Filevent, Île Rosa Rugosa · Mégapparitions',
+        'Champ Flora (la nuit), Colline Ambition (la nuit), Rive Filevent (la nuit), Val Ferrache (la nuit), Île Rosa Rugosa (la nuit) · En vol : Colline Ambition (la nuit), Sentier Cer-Mont (la nuit), Val Ferrache (la nuit), Île Rosa Rugosa (la nuit) · Alentours : Pont Rocheux (la nuit) · Mégapparitions',
       places: [
-        'Colline Ambition',
         'Champ Flora',
-        'Val Ferrache',
+        'Colline Ambition',
         'Pont Rocheux',
-        'Sentier Cer-Mont',
         'Rive Filevent',
+        'Sentier Cer-Mont',
+        'Val Ferrache',
         'Île Rosa Rugosa',
       ],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "La nuit : Coteau du Passage, Plage Ginkgo et alentours, Mont des Capumain (alentours), Lagune des Bains et alentours, Crique Paisible (alentours), Rive des Revenants, Presqu'île Tombolo (alentours), Main de Sable et alentours, Baie Sérénité, Plage de l'Errance (alentours), Plage Long-des-Îles (alentours, apparitions massives à proximité), Arche Poissigrand, Havre des Algues, Île Crache-Feu",
+        "Baie Sérénité (la nuit), Lagune des Bains (la nuit), Plage Ginkgo (la nuit) · En vol : Baie Sérénité (la nuit), Coteau du Passage (la nuit), Main de Sable (la nuit), Rive des Revenants (la nuit) · Dans l'eau : Arche Poissigrand (la nuit), Baie Sérénité (la nuit), Havre des Algues (la nuit) · Alentours : Mont des Capumain (la nuit), Crique Paisible (la nuit), Presqu'île Tombolo (la nuit), Plage de l'Errance (la nuit), Plage Long-des-Îles (apparitions massives à proximité, la nuit), Île Crache-Feu (la nuit)",
       places: [
-        'Coteau du Passage',
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
-        'Crique Paisible',
-        'Rive des Revenants',
-        "Presqu'île Tombolo",
-        'Main de Sable',
-        'Baie Sérénité',
-        "Plage de l'Errance",
-        'Plage Long-des-Îles',
         'Arche Poissigrand',
+        'Baie Sérénité',
+        'Coteau du Passage',
+        'Crique Paisible',
         'Havre des Algues',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        'Plage Long-des-Îles',
+        "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
         'Île Crache-Feu',
       ],
     },
     {
       region: 'Terres Immaculées',
       details:
-        'La nuit : Étendue Polaire, Glacier Séracrawl, Terrasse du Glacier (aussi en apparitions massives), Rocher Esprit · Mégapparitions',
-      places: ['Étendue Polaire', 'Glacier Séracrawl', 'Terrasse du Glacier', 'Rocher Esprit'],
+        'Glacier Séracrawl (la nuit), Rocher Esprit (la nuit), Terrasse du Glacier (la nuit), Étendue Polaire (la nuit) · Apparitions massives : Terrasse du Glacier · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Rocher Esprit', 'Terrasse du Glacier', 'Étendue Polaire'],
     },
   ],
   dusclops: [
     {
       region: 'Côte Lazuli',
-      details: 'Rive des Revenants (la nuit)',
+      details: 'Rive des Revenants (la nuit) · Apparitions massives : Rive des Revenants',
       places: ['Rive des Revenants'],
     },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles · Mégapparitions' },
     {
       region: 'Terres Immaculées',
       details:
-        "Chute d'Oglacé et alentours (aussi en apparitions massives, la nuit), Sentier de l'Arène (la nuit), Pente de l'Avalanche · Mégapparitions",
-      places: ["Chute d'Oglacé", "Sentier de l'Arène", "Pente de l'Avalanche"],
+        "Pente de l'Avalanche (la nuit), Sentier de l'Arène (la nuit) · Alentours : Chute d'Oglacé (aussi en apparitions massives, la nuit) · Mégapparitions",
+      places: ["Chute d'Oglacé", "Pente de l'Avalanche", "Sentier de l'Arène"],
     },
   ],
   dusknoir: [
     {
       region: 'Côte Lazuli',
-      details: 'Rive des Revenants (la nuit)',
+      details: 'Uniquement en Baron',
       places: ['Rive des Revenants'],
       alphas: ['Rive des Revenants'],
     },
@@ -780,40 +825,41 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   duskull: [
     {
       region: 'Côte Lazuli',
-      details: 'Rive des Revenants (la nuit)',
+      details: 'Rive des Revenants (la nuit) · Apparitions massives : Rive des Revenants',
       places: ['Rive des Revenants'],
     },
     { region: 'Contrefort Couronné', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
       details:
-        "Chute d'Oglacé et alentours (aussi en apparitions massives, la nuit), Sentier de l'Arène (la nuit), Pente de l'Avalanche · Mégapparitions",
-      places: ["Chute d'Oglacé", "Sentier de l'Arène", "Pente de l'Avalanche"],
+        "Pente de l'Avalanche (la nuit), Sentier de l'Arène (la nuit) · Alentours : Chute d'Oglacé (aussi en apparitions massives, la nuit) · Mégapparitions",
+      places: ["Chute d'Oglacé", "Pente de l'Avalanche", "Sentier de l'Arène"],
     },
   ],
   dustox: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        'La nuit : Champ Flora, Bocage Agité (apparitions massives à proximité), Forêt Lointaine · Mégapparitions',
-      places: ['Champ Flora', 'Bocage Agité', 'Forêt Lointaine'],
+        'En vol : Bocage Agité (la nuit), Champ Flora (la nuit), Forêt Lointaine (la nuit) · Mégapparitions',
+      places: ['Bocage Agité', 'Champ Flora', 'Forêt Lointaine'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'La nuit : Lagune des Bains, Cap du Voile',
-      places: ['Lagune des Bains', 'Cap du Voile'],
+      details: 'En vol : Cap du Voile (la nuit), Lagune des Bains (la nuit)',
+      places: ['Cap du Voile', 'Lagune des Bains'],
     },
   ],
   eevee: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Val Ferrache · Distorsions spatio-temporelles',
+      details:
+        'Val Ferrache · Apparitions massives : Val Ferrache · Distorsions spatio-temporelles',
       places: ['Val Ferrache'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Côte Lazuli',
-      details: 'Coteau du Passage (alentours) · Distorsions spatio-temporelles',
+      details: 'Alentours : Coteau du Passage · Distorsions spatio-temporelles',
       places: ['Coteau du Passage'],
     },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
@@ -822,19 +868,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   electabuzz: [
     {
       region: 'Contrefort Couronné',
-      details: 'Passage des Nuages · Mégapparitions',
+      details: 'Passage des Nuages · Apparitions massives : Passage des Nuages · Mégapparitions',
       places: ['Passage des Nuages'],
     },
     {
       region: 'Terres Immaculées',
       details: "Chute d'Oglacé, Sentier de l'Arène · Distorsions spatio-temporelles",
       places: ["Chute d'Oglacé", "Sentier de l'Arène"],
+      alphas: ['emplacement non précisé'],
     },
   ],
   electivire: [
     {
       region: 'Contrefort Couronné',
-      details: 'Passage des Nuages · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Passage des Nuages'],
       alphas: ['Passage des Nuages'],
     },
@@ -849,7 +896,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   elekid: [
     {
       region: 'Contrefort Couronné',
-      details: 'Passage des Nuages · Mégapparitions',
+      details: 'Passage des Nuages · Apparitions massives : Passage des Nuages · Mégapparitions',
       places: ['Passage des Nuages'],
     },
     {
@@ -861,7 +908,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   empoleon: [
     {
       region: 'Côte Lazuli',
-      details: 'Plage Long-des-Îles · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Plage Long-des-Îles'],
       alphas: ['Plage Long-des-Îles'],
     },
@@ -873,7 +920,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   finneon: [
     {
       region: 'Côte Lazuli',
-      details: 'Havre des Algues · Mégapparitions',
+      details:
+        "Dans l'eau : Havre des Algues · Apparitions massives : Havre des Algues · Mégapparitions",
       places: ['Havre des Algues'],
     },
   ],
@@ -884,29 +932,29 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   floatzel: [
     {
       region: 'Plaines Obsidiennes',
-      details:
-        'Val Ferrache (apparitions massives), Pont Rocheux (alentours), Rive Filevent · Mégapparitions',
-      places: ['Val Ferrache', 'Pont Rocheux', 'Rive Filevent'],
+      details: 'Alentours : Val Ferrache (apparitions massives), Rive Filevent · Mégapparitions',
+      places: ['Rive Filevent', 'Val Ferrache', 'Pont Rocheux'],
       alphas: ['Pont Rocheux (niv. 31)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Côte Lazuli',
-      details: 'Plage Ginkgo, Mont des Capumain, Lagune des Bains',
-      places: ['Plage Ginkgo', 'Mont des Capumain', 'Lagune des Bains'],
+      details:
+        'Lagune des Bains, Mont des Capumain, Plage Ginkgo · Apparitions massives : Lagune des Bains',
+      places: ['Lagune des Bains', 'Mont des Capumain', 'Plage Ginkgo'],
     },
   ],
   froslass: [
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche (la nuit), Étendue Polaire (la nuit), Glacier Séracrawl (la nuit), Temple de Frimapic (la nuit), Hameau Perle (alentours, la nuit), Chambre des Piliers · Mégapparitions",
+        "Glacier Séracrawl (la nuit, rare), Pente de l'Avalanche (la nuit, rare), Temple de Frimapic (la nuit, rare), Étendue Polaire (la nuit, rare) · Alentours : Hameau Perle (la nuit) · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Étendue Polaire',
         'Glacier Séracrawl',
-        'Temple de Frimapic',
         'Hameau Perle',
+        "Pente de l'Avalanche",
+        'Temple de Frimapic',
+        'Étendue Polaire',
         'Chambre des Piliers',
       ],
       alphas: ['Chambre des Piliers'],
@@ -915,20 +963,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   gabite: [
     {
       region: 'Contrefort Couronné',
-      details: 'Falaise Calade (alentours), Falaise Calade (apparitions massives) · Mégapparitions',
+      details: 'Apparitions massives : Falaise Calade · Mégapparitions',
       places: ['Falaise Calade'],
       alphas: ['Falaise Calade'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche",
+      details: "Pente de l'Avalanche · Apparitions massives : Pente de l'Avalanche",
       places: ["Pente de l'Avalanche"],
     },
   ],
   gallade: [
     {
       region: 'Terres Immaculées',
-      details: 'Temple de Frimapic · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Temple de Frimapic'],
       alphas: ['Temple de Frimapic (niv. 70)'],
     },
@@ -937,7 +985,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche",
+      details: 'Uniquement en Baron',
       places: ["Pente de l'Avalanche"],
       alphas: ["Pente de l'Avalanche"],
     },
@@ -945,8 +993,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   gardevoir: [
     {
       region: 'Terres Immaculées',
-      details: 'Rocher Esprit (le jour), Lac Savoir (apparitions massives) · Mégapparitions',
-      places: ['Rocher Esprit', 'Lac Savoir'],
+      details: 'Apparitions massives : Lac Savoir · Mégapparitions',
+      places: ['Lac Savoir', 'Rocher Esprit'],
       alphas: ['Rocher Esprit'],
     },
   ],
@@ -954,42 +1002,43 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "La nuit : Plaine d'Or, Marais Bouchebée, Île de l'Épreuve, Arène Ursa, Plateau Tourbeux (alentours), Marais Carlate, Ruines Brumeuses (aussi en apparitions massives), Lande Herbacoton, Champ Bourdonne, Lac Courage (alentours) · Mégapparitions",
+        "Arène Ursa (la nuit), Champ Bourdonne (la nuit), Lande Herbacoton (la nuit), Marais Bouchebée (la nuit), Marais Carlate (la nuit), Plaine d'Or (la nuit), Ruines Brumeuses (la nuit), Île de l'Épreuve (la nuit) · En vol : Marais Bouchebée (la nuit) · Apparitions massives : Ruines Brumeuses · Alentours : Plateau Tourbeux (la nuit), Lac Courage (la nuit) · Mégapparitions",
       places: [
-        "Plaine d'Or",
-        'Marais Bouchebée',
-        "Île de l'Épreuve",
         'Arène Ursa',
-        'Plateau Tourbeux',
-        'Marais Carlate',
-        'Ruines Brumeuses',
-        'Lande Herbacoton',
         'Champ Bourdonne',
         'Lac Courage',
+        'Lande Herbacoton',
+        'Marais Bouchebée',
+        'Marais Carlate',
+        "Plaine d'Or",
+        'Plateau Tourbeux',
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        'La nuit : Falaise Calade, Temple Céleste, Parvis des Prières, Mont des Gringoles · Mégapparitions',
-      places: ['Falaise Calade', 'Temple Céleste', 'Parvis des Prières', 'Mont des Gringoles'],
+        'Falaise Calade (la nuit), Mont des Gringoles (la nuit), Parvis des Prières (la nuit), Temple Céleste (la nuit) · Mégapparitions',
+      places: ['Falaise Calade', 'Mont des Gringoles', 'Parvis des Prières', 'Temple Céleste'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        'La nuit : Étendue Polaire (aussi en apparitions massives), Glacier Séracrawl (alentours), Souterrain de Givre (alentours) · Mégapparitions',
-      places: ['Étendue Polaire', 'Glacier Séracrawl', 'Souterrain de Givre'],
+        'Étendue Polaire (la nuit) · Apparitions massives : Étendue Polaire · Alentours : Glacier Séracrawl (la nuit), Souterrain de Givre (la nuit) · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Souterrain de Givre', 'Étendue Polaire'],
     },
   ],
   gastrodon: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Mer Occident : Île Rosa Rugosa, Plaine Littorella · Mégapparitions',
-      places: ['Île Rosa Rugosa', 'Plaine Littorella'],
+      details:
+        'Plaine Littorella, Île Rosa Rugosa · Apparitions massives : Île Rosa Rugosa · Mégapparitions',
+      places: ['Plaine Littorella', 'Île Rosa Rugosa'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Mer Orient : Havre des Algues · Mégapparitions',
+      details: 'Havre des Algues · Apparitions massives : Havre des Algues · Mégapparitions',
       places: ['Havre des Algues'],
       alphas: ['Havre des Algues'],
     },
@@ -1003,45 +1052,79 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   geodude: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Pont Rocheux, Plateau Cer-Mont, Chute d'Obsidienne (alentours) · Mégapparitions",
-      places: ['Pont Rocheux', 'Plateau Cer-Mont', "Chute d'Obsidienne"],
+      details:
+        "Plateau Cer-Mont, Pont Rocheux · Gisements qui tremblent : Cellier Champêtre, Digue de l'Estuaire, Forêt Lointaine, Plateau Cer-Mont, Pont Rocheux, Rive Filevent, Sentier Cer-Mont, Tunnel de Fer · Alentours : Chute d'Obsidienne · Mégapparitions",
+      places: [
+        'Cellier Champêtre',
+        "Chute d'Obsidienne",
+        "Digue de l'Estuaire",
+        'Forêt Lointaine',
+        'Plateau Cer-Mont',
+        'Pont Rocheux',
+        'Rive Filevent',
+        'Sentier Cer-Mont',
+        'Tunnel de Fer',
+      ],
     },
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée, Arène Ursa, Plateau Tourbeux (alentours), Marais Carlate (alentours), Pente des Gringoles, Champ Bourdonne',
+        "Arène Ursa, Marais Bouchebée, Marais Carlate, Pente des Gringoles · Gisements qui tremblent : Arène Ursa, Champ Bourdonne, Col Mer-de-Nuages, Lande Herbacoton, Lisière du Hameau, Marais Bouchebée, Marais Carlate, Pente des Gringoles, Plaine d'Or, Plateau Tourbeux, Ruines Brumeuses, Île de l'Épreuve · Apparitions massives : Pente des Gringoles",
       places: [
-        'Marais Bouchebée',
         'Arène Ursa',
-        'Plateau Tourbeux',
+        'Champ Bourdonne',
+        'Col Mer-de-Nuages',
+        'Lande Herbacoton',
+        'Lisière du Hameau',
+        'Marais Bouchebée',
         'Marais Carlate',
         'Pente des Gringoles',
-        'Champ Bourdonne',
+        "Plaine d'Or",
+        'Plateau Tourbeux',
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
     },
-    { region: 'Côte Lazuli', details: 'Mégapparitions' },
+    {
+      region: 'Côte Lazuli',
+      details:
+        "Gisements qui tremblent : Baie Sérénité, Cap du Voile, Coteau du Passage, Lagune des Bains, Main de Sable, Mont des Capumain, Plage Ginkgo, Plage de l'Errance, Rive des Revenants · Mégapparitions",
+      places: [
+        'Baie Sérénité',
+        'Cap du Voile',
+        'Coteau du Passage',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        "Plage de l'Errance",
+        'Rive des Revenants',
+      ],
+    },
     {
       region: 'Contrefort Couronné',
       details:
-        'Ancienne Carrière (alentours), Falaise Calade (le jour), Temple Céleste, Parvis des Prières, Mont des Gringoles · Mégapparitions',
+        'Falaise Calade (le jour), Mont des Gringoles, Parvis des Prières, Temple Céleste · Apparitions massives : Mont des Gringoles · Alentours : Ancienne Carrière · Mégapparitions',
       places: [
         'Ancienne Carrière',
         'Falaise Calade',
-        'Temple Céleste',
-        'Parvis des Prières',
         'Mont des Gringoles',
+        'Parvis des Prières',
+        'Temple Céleste',
       ],
     },
   ],
   gible: [
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte des Égarés, Falaise Calade · Mégapparitions',
-      places: ['Grotte des Égarés', 'Falaise Calade'],
+      details:
+        'Falaise Calade, Grotte des Égarés · Gisements qui tremblent : Falaise Calade, Grotte des Égarés · Apparitions massives : Falaise Calade · Mégapparitions',
+      places: ['Falaise Calade', 'Grotte des Égarés'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche",
+      details:
+        "Pente de l'Avalanche · Gisements qui tremblent : Pente de l'Avalanche · Apparitions massives : Pente de l'Avalanche",
       places: ["Pente de l'Avalanche"],
     },
   ],
@@ -1053,14 +1136,17 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Étendue Polaire, Sentier de l'Arène (un seul, pendant la requête 86), Glacier Séracrawl, Temple de Frimapic, Hameau Perle (alentours) · Mégapparitions",
+        "Glacier Séracrawl, Pente de l'Avalanche, Temple de Frimapic, Étendue Polaire · Gisements qui tremblent : Chute d'Oglacé, Hameau Perle, Pente de l'Avalanche, Rocher Esprit, Terrasse du Glacier, Étendue Polaire · Sentier de l'Arène (un seul, pendant la requête 86) · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Étendue Polaire',
-        "Sentier de l'Arène",
+        "Chute d'Oglacé",
         'Glacier Séracrawl',
-        'Temple de Frimapic',
         'Hameau Perle',
+        "Pente de l'Avalanche",
+        'Rocher Esprit',
+        "Sentier de l'Arène",
+        'Temple de Frimapic',
+        'Terrasse du Glacier',
+        'Étendue Polaire',
       ],
       alphas: ['Étendue Polaire'],
     },
@@ -1068,12 +1154,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   glameow: [
     {
       region: 'Côte Lazuli',
-      details: 'Coteau du Passage, Cap du Voile · Mégapparitions',
-      places: ['Coteau du Passage', 'Cap du Voile'],
+      details:
+        'Cap du Voile, Coteau du Passage · Apparitions massives : Cap du Voile · Mégapparitions',
+      places: ['Cap du Voile', 'Coteau du Passage'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Terrasse du Glacier (alentours) · Mégapparitions',
+      details: 'Alentours : Terrasse du Glacier · Mégapparitions',
       places: ['Terrasse du Glacier'],
     },
   ],
@@ -1081,21 +1168,21 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Falaise Calade, Temple Céleste et alentours, Grotte Préhistorique (alentours), Passage des Nuages (alentours) · Mégapparitions',
-      places: ['Falaise Calade', 'Temple Céleste', 'Grotte Préhistorique', 'Passage des Nuages'],
+        'Falaise Calade, Temple Céleste · Apparitions massives : Falaise Calade · Alentours : Grotte Préhistorique, Passage des Nuages · Mégapparitions',
+      places: ['Falaise Calade', 'Grotte Préhistorique', 'Passage des Nuages', 'Temple Céleste'],
       alphas: ['Temple Céleste'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        "Sentier de l'Arène, Terrasse du Glacier (le jour), Terrasse du Glacier (apparitions massives)",
+        "Sentier de l'Arène, Terrasse du Glacier (le jour) · Apparitions massives : Terrasse du Glacier",
       places: ["Sentier de l'Arène", 'Terrasse du Glacier'],
     },
   ],
   gliscor: [
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte Préhistorique (alentours) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Grotte Préhistorique'],
       alphas: ['Grotte Préhistorique'],
     },
@@ -1104,41 +1191,45 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        "La nuit : Plateau Cer-Mont, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire, Forêt Lointaine, Tunnel de Fer et alentours, Chute d'Obsidienne (alentours) · Mégapparitions",
+        "Cellier Champêtre (la nuit), Digue de l'Estuaire (la nuit), Forêt Lointaine (la nuit), Plateau Cer-Mont (la nuit), Rive Filevent (la nuit) · En vol : Cellier Champêtre (la nuit), Digue de l'Estuaire (la nuit), Plateau Cer-Mont (la nuit), Rive Filevent (la nuit) · Apparitions massives : Forêt Lointaine · Alentours : Tunnel de Fer (la nuit), Chute d'Obsidienne (la nuit) · Mégapparitions",
       places: [
-        'Plateau Cer-Mont',
-        'Rive Filevent',
         'Cellier Champêtre',
+        "Chute d'Obsidienne",
         "Digue de l'Estuaire",
         'Forêt Lointaine',
+        'Plateau Cer-Mont',
+        'Rive Filevent',
         'Tunnel de Fer',
-        "Chute d'Obsidienne",
       ],
       alphas: ['Tunnel de Fer (niv. 35)'],
     },
     {
       region: 'Marais Carmin',
       details:
-        'La nuit : Col Mer-de-Nuages, Hameau Diamant (alentours), Lisière du Hameau, Pente des Gringoles',
+        'Col Mer-de-Nuages (la nuit), Lisière du Hameau (la nuit), Pente des Gringoles (la nuit) · Alentours : Hameau Diamant (la nuit)',
       places: ['Col Mer-de-Nuages', 'Hameau Diamant', 'Lisière du Hameau', 'Pente des Gringoles'],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        "Hauts de l'Humilité (la nuit), Forêt des Égarés (la nuit), Grotte des Égarés, Ancienne Carrière (alentours, la nuit)",
-      places: ["Hauts de l'Humilité", 'Forêt des Égarés', 'Grotte des Égarés', 'Ancienne Carrière'],
+        "Forêt des Égarés (la nuit), Hauts de l'Humilité (la nuit) · En vol : Forêt des Égarés (la nuit), Grotte des Égarés, Hauts de l'Humilité (la nuit) · Apparitions massives : Hauts de l'Humilité · Alentours : Ancienne Carrière (la nuit)",
+      places: ['Ancienne Carrière', 'Forêt des Égarés', 'Grotte des Égarés', "Hauts de l'Humilité"],
     },
-    { region: 'Terres Immaculées', details: 'Temple de Frimapic', places: ['Temple de Frimapic'] },
+    {
+      region: 'Terres Immaculées',
+      details: 'En vol : Temple de Frimapic',
+      places: ['Temple de Frimapic'],
+    },
   ],
   golduck: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine (apparitions massives)',
+      details: 'Apparitions massives : Forêt Lointaine',
       places: ['Forêt Lointaine'],
     },
     {
       region: 'Marais Carmin',
-      details: "Plaine d'Or (apparitions massives), Île de l'Épreuve · Mégapparitions",
+      details: "Île de l'Épreuve · Apparitions massives : Plaine d'Or · Mégapparitions",
       places: ["Plaine d'Or", "Île de l'Épreuve"],
     },
     {
@@ -1158,7 +1249,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Mont des Gringoles · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Mont des Gringoles'],
       alphas: ['Mont des Gringoles'],
     },
@@ -1166,14 +1257,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   goodra: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Lac Vérité (un seul, pendant la mission 14)',
+      details: 'Uniquement en Baron (non confirmé)',
       places: ['Lac Vérité'],
-      alphas: ['Lac Vérité (niv. 58)'],
+      alphas: ['Lac Vérité (niv. 58) (non confirmé)'],
     },
     { region: 'Marais Carmin', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours)',
+      details: 'Uniquement en Baron',
       places: ['Ancienne Carrière'],
       alphas: ['Ancienne Carrière'],
     },
@@ -1181,59 +1272,92 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   goomy: [
     {
       region: 'Marais Carmin',
-      details: "Île de l'Épreuve, Arène Ursa (apparitions massives) · Mégapparitions",
-      places: ["Île de l'Épreuve", 'Arène Ursa'],
+      details: "Île de l'Épreuve · Apparitions massives : Arène Ursa · Mégapparitions",
+      places: ['Arène Ursa', "Île de l'Épreuve"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours)',
+      details: 'Alentours : Ancienne Carrière',
       places: ['Ancienne Carrière'],
     },
   ],
   graveler: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Chute d'Obsidienne (alentours) · Mégapparitions",
-      places: ["Chute d'Obsidienne", 'Bocage Agité'],
+      details:
+        'Gisements qui tremblent : Plaine Littorella, Tunnel de Fer, Île Rosa Rugosa · Mégapparitions',
+      places: [
+        'Plaine Littorella',
+        'Tunnel de Fer',
+        'Île Rosa Rugosa',
+        'Bocage Agité',
+        "Chute d'Obsidienne",
+      ],
       alphas: ['Bocage Agité (niv. 30)', "Chute d'Obsidienne"],
     },
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée, Arène Ursa, Plateau Tourbeux (alentours), Marais Carlate (alentours), Pente des Gringoles, Champ Bourdonne, Lac Courage (alentours)',
+        "Arène Ursa, Marais Bouchebée, Marais Carlate, Pente des Gringoles · Gisements qui tremblent : Arène Ursa, Champ Bourdonne, Col Mer-de-Nuages, Lac Courage, Lande Herbacoton, Lisière du Hameau, Marais Bouchebée, Marais Carlate, Pente des Gringoles, Plaine d'Or, Plateau Tourbeux, Ruines Brumeuses, Île de l'Épreuve · Apparitions massives : Pente des Gringoles",
       places: [
-        'Marais Bouchebée',
         'Arène Ursa',
-        'Plateau Tourbeux',
+        'Champ Bourdonne',
+        'Col Mer-de-Nuages',
+        'Lac Courage',
+        'Lande Herbacoton',
+        'Lisière du Hameau',
+        'Marais Bouchebée',
         'Marais Carlate',
         'Pente des Gringoles',
-        'Champ Bourdonne',
-        'Lac Courage',
+        "Plaine d'Or",
+        'Plateau Tourbeux',
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Île Crache-Feu · Mégapparitions',
-      places: ['Île Crache-Feu'],
+      details:
+        "Île Crache-Feu · Gisements qui tremblent : Baie Sérénité, Bois Brise-Vent, Cap du Voile, Chemin de la Source, Coteau du Passage, Crique Paisible, Lagune des Bains, Main de Sable, Mont des Capumain, Plage Ginkgo, Plage de l'Errance, Presqu'île Tombolo, Rive des Revenants, Île Crache-Feu · Mégapparitions",
+      places: [
+        'Baie Sérénité',
+        'Bois Brise-Vent',
+        'Cap du Voile',
+        'Chemin de la Source',
+        'Coteau du Passage',
+        'Crique Paisible',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
+        'Île Crache-Feu',
+      ],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        'Ancienne Carrière (alentours), Falaise Calade (le jour), Temple Céleste, Parvis des Prières, Mont des Gringoles · Mégapparitions',
+        "Falaise Calade (le jour), Mont des Gringoles, Parvis des Prières, Temple Céleste · Gisements qui tremblent : Col Pierlevé, Hauts de l'Humilité, Mont des Gringoles, Parvis des Prières, Sentier Céleste, Source Féérique · Apparitions massives : Mont des Gringoles · Alentours : Ancienne Carrière · Mégapparitions",
       places: [
         'Ancienne Carrière',
+        'Col Pierlevé',
         'Falaise Calade',
-        'Temple Céleste',
-        'Parvis des Prières',
+        "Hauts de l'Humilité",
         'Mont des Gringoles',
+        'Parvis des Prières',
+        'Sentier Céleste',
+        'Source Féérique',
+        'Temple Céleste',
       ],
     },
-    { region: 'Terres Immaculées', details: 'Temple de Frimapic' },
+    { region: 'Terres Immaculées', details: 'Temple de Frimapic', places: ['Temple de Frimapic'] },
   ],
   grotle: [
     {
       region: 'Marais Carmin',
-      details: 'Champ Bourdonne (alentours) · Mégapparitions',
+      details: 'Alentours : Champ Bourdonne · Mégapparitions',
       places: ['Champ Bourdonne'],
     },
   ],
@@ -1247,19 +1371,20 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   gyarados: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Chute d'Obsidienne (en vol), Lac Vérité",
+      details:
+        "En vol : Chute d'Obsidienne · Dans l'eau : Lac Vérité · Apparitions massives : Lac Vérité",
       places: ["Chute d'Obsidienne", 'Lac Vérité'],
       alphas: ['Lac Vérité (niv. 60)'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Main de Sable et alentours · Mégapparitions',
+      details: 'Alentours : Main de Sable · Mégapparitions',
       places: ['Main de Sable'],
       alphas: ['Main de Sable'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte Préhistorique (alentours)',
+      details: 'Alentours : Grotte Préhistorique',
       places: ['Grotte Préhistorique'],
     },
   ],
@@ -1267,27 +1392,27 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Val Ferrache (alentours, apparitions massives), Tunnel de Fer, Chute d'Obsidienne (alentours)",
-      places: ['Val Ferrache', 'Tunnel de Fer', "Chute d'Obsidienne"],
+        "Tunnel de Fer · Alentours : Val Ferrache (apparitions massives), Chute d'Obsidienne",
+      places: ["Chute d'Obsidienne", 'Tunnel de Fer', 'Val Ferrache'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Lande Herbacoton (apparitions massives)',
+      details: 'Apparitions massives : Lande Herbacoton',
       places: ['Lande Herbacoton'],
     },
     {
       region: 'Côte Lazuli',
-      details: "Crique Paisible, Presqu'île Tombolo et alentours · Mégapparitions",
+      details: "Crique Paisible · Apparitions massives : Presqu'île Tombolo · Mégapparitions",
       places: ['Crique Paisible', "Presqu'île Tombolo"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Source Reculée (apparitions massives)',
+      details: 'Alentours : Source Reculée (apparitions massives)',
       places: ['Source Reculée'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche",
+      details: "Pente de l'Avalanche · Apparitions massives : Pente de l'Avalanche",
       places: ["Pente de l'Avalanche"],
     },
   ],
@@ -1296,31 +1421,31 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "La nuit : Plaine d'Or (alentours), Marais Bouchebée, Île de l'Épreuve, Arène Ursa, Plateau Tourbeux (alentours), Marais Carlate, Ruines Brumeuses (aussi en apparitions massives), Lande Herbacoton, Champ Bourdonne, Lac Courage (alentours) · Mégapparitions",
+        "Arène Ursa (la nuit), Champ Bourdonne (la nuit), Lande Herbacoton (la nuit), Marais Bouchebée (la nuit), Marais Carlate (la nuit), Ruines Brumeuses (la nuit), Île de l'Épreuve (la nuit) · En vol : Marais Bouchebée (la nuit) · Apparitions massives : Ruines Brumeuses · Alentours : Plaine d'Or (la nuit), Plateau Tourbeux (la nuit), Lac Courage (la nuit) · Mégapparitions",
       places: [
-        "Plaine d'Or",
-        'Marais Bouchebée',
-        "Île de l'Épreuve",
         'Arène Ursa',
-        'Plateau Tourbeux',
-        'Marais Carlate',
-        'Ruines Brumeuses',
-        'Lande Herbacoton',
         'Champ Bourdonne',
         'Lac Courage',
+        'Lande Herbacoton',
+        'Marais Bouchebée',
+        'Marais Carlate',
+        "Plaine d'Or",
+        'Plateau Tourbeux',
+        'Ruines Brumeuses',
+        "Île de l'Épreuve",
       ],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        'La nuit : Falaise Calade, Temple Céleste, Parvis des Prières, Mont des Gringoles · Mégapparitions',
-      places: ['Falaise Calade', 'Temple Céleste', 'Parvis des Prières', 'Mont des Gringoles'],
+        'Falaise Calade (la nuit), Mont des Gringoles (la nuit), Parvis des Prières (la nuit), Temple Céleste (la nuit) · Mégapparitions',
+      places: ['Falaise Calade', 'Mont des Gringoles', 'Parvis des Prières', 'Temple Céleste'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        'La nuit : Étendue Polaire (aussi en apparitions massives), Glacier Séracrawl (alentours), Souterrain de Givre (alentours) · Mégapparitions',
-      places: ['Étendue Polaire', 'Glacier Séracrawl', 'Souterrain de Givre'],
+        'Étendue Polaire (la nuit) · Apparitions massives : Étendue Polaire · Alentours : Glacier Séracrawl (la nuit), Souterrain de Givre (la nuit) · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Souterrain de Givre', 'Étendue Polaire'],
     },
   ],
   heatran: [
@@ -1333,55 +1458,61 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   heracross: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Bocage Agité',
+      details: 'Uniquement en Baron',
       places: ['Bocage Agité'],
       alphas: ['Bocage Agité (niv. 45)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
-      details: 'Forêt des Égarés (le jour) · Mégapparitions',
-      places: ['Forêt des Égarés'],
+      details:
+        'Forêt des Égarés (le jour) · Arbres qui tremblent : Forêt des Égarés, Sentier des Pèlerins · Apparitions massives : Forêt des Égarés · Mégapparitions',
+      places: ['Forêt des Égarés', 'Sentier des Pèlerins'],
     },
   ],
   hippopotas: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée, Plateau Tourbeux (alentours), Marais Carlate · Mégapparitions',
-      places: ['Marais Bouchebée', 'Plateau Tourbeux', 'Marais Carlate'],
+      details:
+        'Marais Bouchebée, Marais Carlate · Apparitions massives : Marais Bouchebée · Alentours : Plateau Tourbeux · Mégapparitions',
+      places: ['Marais Bouchebée', 'Marais Carlate', 'Plateau Tourbeux'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste · Mégapparitions',
+      details: 'Sentier Céleste · Apparitions massives : Sentier Céleste · Mégapparitions',
       places: ['Sentier Céleste'],
     },
   ],
   hippowdon: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée, Marais Carlate et alentours · Mégapparitions',
-      places: ['Marais Bouchebée', 'Marais Carlate'],
+      details: 'Marais Carlate · Mégapparitions',
+      places: ['Marais Carlate', 'Marais Bouchebée'],
       alphas: ['Marais Bouchebée'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste · Mégapparitions',
+      details: 'Sentier Céleste · Apparitions massives : Sentier Céleste · Mégapparitions',
       places: ['Sentier Céleste'],
     },
   ],
   honchkrow: [
     {
       region: 'Marais Carmin',
-      details: 'Col Mer-de-Nuages (la nuit) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Col Mer-de-Nuages'],
       alphas: ['Col Mer-de-Nuages'],
     },
-    { region: 'Côte Lazuli', details: 'Lagune des Bains (la nuit)', places: ['Lagune des Bains'] },
+    {
+      region: 'Côte Lazuli',
+      details: 'Alentours : Lagune des Bains (la nuit)',
+      places: ['Lagune des Bains'],
+    },
   ],
   infernape: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Île Rosa Rugosa · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Île Rosa Rugosa'],
       alphas: ['Île Rosa Rugosa (niv. 65)'],
     },
@@ -1390,7 +1521,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   kadabra: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plaine Littorella · Mégapparitions',
+      details: 'Plaine Littorella · Apparitions massives : Plaine Littorella · Mégapparitions',
       places: ['Plaine Littorella'],
     },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
@@ -1401,8 +1532,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        'Rocher Esprit (le jour), Lac Savoir (apparitions massives), Temple de Frimapic · Mégapparitions',
-      places: ['Rocher Esprit', 'Lac Savoir', 'Temple de Frimapic'],
+        'Rocher Esprit (le jour), Temple de Frimapic · Alentours : Lac Savoir (apparitions massives) · Mégapparitions',
+      places: ['Lac Savoir', 'Rocher Esprit', 'Temple de Frimapic'],
     },
   ],
   kleavor: [
@@ -1414,27 +1545,28 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Sentier Cer-Mont et alentours, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire · Mégapparitions",
-      places: ['Sentier Cer-Mont', 'Rive Filevent', 'Cellier Champêtre', "Digue de l'Estuaire"],
+        "Cellier Champêtre, Digue de l'Estuaire, Rive Filevent, Sentier Cer-Mont · Mégapparitions",
+      places: ['Cellier Champêtre', "Digue de l'Estuaire", 'Rive Filevent', 'Sentier Cer-Mont'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Col Mer-de-Nuages, Hameau Diamant (alentours) · Mégapparitions',
-      places: ['Col Mer-de-Nuages', 'Hameau Diamant'],
+      details: "Col Mer-de-Nuages, Plaine d'Or · Alentours : Hameau Diamant · Mégapparitions",
+      places: ['Col Mer-de-Nuages', 'Hameau Diamant', "Plaine d'Or"],
     },
   ],
   kricketune: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Plateau Cer-Mont (un seul, pendant la mission 5), Rive Filevent, Cellier Champêtre, Digue de l'Estuaire · Mégapparitions",
-      places: ['Plateau Cer-Mont', 'Rive Filevent', 'Cellier Champêtre', "Digue de l'Estuaire"],
+        "Cellier Champêtre, Digue de l'Estuaire, Rive Filevent · Apparitions massives : Rive Filevent · Mégapparitions",
+      places: ['Cellier Champêtre', "Digue de l'Estuaire", 'Rive Filevent', 'Plateau Cer-Mont'],
       alphas: ["Digue de l'Estuaire (niv. 30)", 'Plateau Cer-Mont'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Col Mer-de-Nuages, Hameau Diamant (alentours) · Mégapparitions',
-      places: ['Col Mer-de-Nuages', 'Hameau Diamant'],
+      details:
+        "Col Mer-de-Nuages, Plaine d'Or · Apparitions massives : Col Mer-de-Nuages · Alentours : Hameau Diamant · Mégapparitions",
+      places: ['Col Mer-de-Nuages', 'Hameau Diamant', "Plaine d'Or"],
     },
   ],
   landorus: [
@@ -1449,7 +1581,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Marais Carmin',
-      details: 'Ruines Brumeuses (aussi en apparitions massives) · Mégapparitions',
+      details: 'Apparitions massives : Ruines Brumeuses · Mégapparitions',
       places: ['Ruines Brumeuses'],
       alphas: ['Ruines Brumeuses'],
     },
@@ -1463,13 +1595,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Marais Carmin',
-      details: 'Ruines Brumeuses, Hameau Diamant (alentours) · Mégapparitions',
-      places: ['Ruines Brumeuses', 'Hameau Diamant'],
+      details: 'Ruines Brumeuses · Alentours : Hameau Diamant · Mégapparitions',
+      places: ['Hameau Diamant', 'Ruines Brumeuses'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche, Source Panora-Neige · Mégapparitions",
-      places: ["Pente de l'Avalanche", 'Source Panora-Neige'],
+      details:
+        "Pente de l'Avalanche, Sentier de l'Arène, Source Panora-Neige · Apparitions massives : Pente de l'Avalanche · Mégapparitions",
+      places: ["Pente de l'Avalanche", "Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   lilligant: [
@@ -1478,30 +1611,32 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   lopunny: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine (alentours) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Forêt Lointaine'],
       alphas: ['Forêt Lointaine (niv. 40)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Terres Immaculées',
-      details: 'Étendue Polaire, Source Panora-Neige · Mégapparitions',
-      places: ['Étendue Polaire', 'Source Panora-Neige'],
+      details:
+        "Sentier de l'Arène (rare), Source Panora-Neige (rare), Étendue Polaire (rare) · Mégapparitions",
+      places: ["Sentier de l'Arène", 'Source Panora-Neige', 'Étendue Polaire'],
     },
   ],
   lucario: [
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
-      details: "Chute d'Oglacé, Source Panora-Neige · Mégapparitions",
-      places: ["Chute d'Oglacé", 'Source Panora-Neige'],
+      details:
+        "Chute d'Oglacé (par blizzard), Sentier de l'Arène (rare), Source Panora-Neige (rare) · Mégapparitions",
+      places: ["Chute d'Oglacé", "Sentier de l'Arène", 'Source Panora-Neige'],
       alphas: ["Chute d'Oglacé"],
     },
   ],
   lumineon: [
     {
       region: 'Côte Lazuli',
-      details: 'Havre des Algues et alentours · Mégapparitions',
+      details: 'Apparitions massives : Havre des Algues · Mégapparitions',
       places: ['Havre des Algues'],
       alphas: ['Havre des Algues'],
     },
@@ -1510,39 +1645,39 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Champ Flora, Tunnel de Fer (alentours), Plaine Littorella, Lac Vérité · Mégapparitions',
-      places: ['Champ Flora', 'Tunnel de Fer', 'Plaine Littorella', 'Lac Vérité'],
+        'Lac Vérité, Plaine Littorella · Apparitions massives : Plaine Littorella · Alentours : Tunnel de Fer · Mégapparitions',
+      places: ['Lac Vérité', 'Plaine Littorella', 'Tunnel de Fer', 'Champ Flora'],
       alphas: ['Champ Flora (niv. 40)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
       details:
-        "Hauts de l'Humilité, Sentier des Pèlerins, Parvis des Prières, Passage des Nuages · Mégapparitions",
+        "Hauts de l'Humilité, Parvis des Prières, Passage des Nuages, Sentier des Pèlerins · Apparitions massives : Sentier des Pèlerins · Mégapparitions",
       places: [
         "Hauts de l'Humilité",
-        'Sentier des Pèlerins',
         'Parvis des Prières',
         'Passage des Nuages',
+        'Sentier des Pèlerins',
       ],
     },
   ],
   luxray: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plaine Littorella, Lac Vérité · Mégapparitions',
-      places: ['Plaine Littorella', 'Lac Vérité'],
+      details: 'Lac Vérité, Plaine Littorella · Apparitions massives : Lac Vérité · Mégapparitions',
+      places: ['Lac Vérité', 'Plaine Littorella'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
       details:
-        "Hauts de l'Humilité, Sentier des Pèlerins, Parvis des Prières, Passage des Nuages · Mégapparitions",
+        "Hauts de l'Humilité, Parvis des Prières, Passage des Nuages, Sentier des Pèlerins · Apparitions massives : Hauts de l'Humilité · Mégapparitions",
       places: [
         "Hauts de l'Humilité",
-        'Sentier des Pèlerins',
         'Parvis des Prières',
         'Passage des Nuages',
+        'Sentier des Pèlerins',
       ],
       alphas: ['Parvis des Prières'],
     },
@@ -1551,7 +1686,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Contrefort Couronné', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
-      details: "Sentier de l'Arène · Mégapparitions",
+      details: 'Mégapparitions',
       places: ["Sentier de l'Arène"],
       alphas: ["Sentier de l'Arène"],
     },
@@ -1559,74 +1694,77 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   machoke: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Chute d'Obsidienne (alentours)",
+      details: "Alentours : Chute d'Obsidienne",
       places: ["Chute d'Obsidienne"],
     },
     {
       region: 'Côte Lazuli',
-      details: "Plage Ginkgo (alentours), Plage de l'Errance",
+      details:
+        "Plage de l'Errance · Apparitions massives : Plage de l'Errance · Alentours : Plage Ginkgo",
       places: ['Plage Ginkgo', "Plage de l'Errance"],
       alphas: ['Plage Ginkgo'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Mont des Gringoles, Passage des Nuages (alentours) · Mégapparitions',
+      details: 'Mont des Gringoles · Alentours : Passage des Nuages · Mégapparitions',
       places: ['Mont des Gringoles', 'Passage des Nuages'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Chute d'Oglacé, Sentier de l'Arène, Source Panora-Neige · Mégapparitions",
+      details:
+        "Chute d'Oglacé, Sentier de l'Arène, Source Panora-Neige · Apparitions massives : Sentier de l'Arène · Mégapparitions",
       places: ["Chute d'Oglacé", "Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   machop: [
     {
       region: 'Plaines Obsidiennes',
-      details: "Tunnel de Fer, Chute d'Obsidienne (alentours)",
-      places: ['Tunnel de Fer', "Chute d'Obsidienne"],
+      details: "Tunnel de Fer · Alentours : Chute d'Obsidienne",
+      places: ["Chute d'Obsidienne", 'Tunnel de Fer'],
     },
     {
       region: 'Côte Lazuli',
-      details: "Plage Ginkgo (alentours), Plage de l'Errance",
+      details:
+        "Plage de l'Errance · Apparitions massives : Plage de l'Errance · Alentours : Plage Ginkgo",
       places: ['Plage Ginkgo', "Plage de l'Errance"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Mont des Gringoles, Passage des Nuages (alentours) · Mégapparitions',
+      details: 'Mont des Gringoles · Alentours : Passage des Nuages · Mégapparitions',
       places: ['Mont des Gringoles', 'Passage des Nuages'],
     },
     {
       region: 'Terres Immaculées',
-      details: "Chute d'Oglacé, Sentier de l'Arène, Source Panora-Neige · Mégapparitions",
+      details:
+        "Chute d'Oglacé, Sentier de l'Arène, Source Panora-Neige · Apparitions massives : Sentier de l'Arène · Mégapparitions",
       places: ["Chute d'Oglacé", "Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   magby: [
     {
       region: 'Côte Lazuli',
-      details: 'Île Crache-Feu · Mégapparitions',
+      details: 'Île Crache-Feu · Apparitions massives : Île Crache-Feu · Mégapparitions',
       places: ['Île Crache-Feu'],
     },
   ],
   magikarp: [
     {
       region: 'Plaines Obsidiennes',
-      details:
-        "Pont Rocheux (apparitions massives), Tunnel de Fer (alentours), Chute d'Obsidienne, Lac Vérité",
-      places: ['Pont Rocheux', 'Tunnel de Fer', "Chute d'Obsidienne", 'Lac Vérité'],
+      details: "Dans l'eau : Chute d'Obsidienne, Lac Vérité · Apparitions massives : Pont Rocheux",
+      places: ["Chute d'Obsidienne", 'Lac Vérité', 'Pont Rocheux', 'Tunnel de Fer'],
       alphas: ['Tunnel de Fer'],
     },
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste (alentours)',
+      details: 'Alentours : Sentier Céleste',
       places: ['Sentier Céleste'],
     },
   ],
   magmar: [
     {
       region: 'Côte Lazuli',
-      details: 'Île Crache-Feu · Mégapparitions',
+      details: 'Île Crache-Feu · Apparitions massives : Île Crache-Feu · Mégapparitions',
       places: ['Île Crache-Feu'],
     },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
@@ -1642,14 +1780,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'En vol : Falaise Calade (alentours), Sentier Céleste (alentours), Source Féérique (alentours) · Distorsions spatio-temporelles',
+        'Alentours : Falaise Calade (en vol), Sentier Céleste (en vol), Source Féérique (en vol) · Distorsions spatio-temporelles',
       places: ['Falaise Calade', 'Sentier Céleste', 'Source Féérique'],
     },
   ],
   mamoswine: [
     {
       region: 'Terres Immaculées',
-      details: "Pente de l'Avalanche (apparitions massives), Glacier Séracrawl · Mégapparitions",
+      details: "Apparitions massives : Pente de l'Avalanche · Mégapparitions",
       places: ["Pente de l'Avalanche", 'Glacier Séracrawl'],
       alphas: ['Glacier Séracrawl'],
     },
@@ -1658,7 +1796,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   mantine: [
     {
       region: 'Côte Lazuli',
-      details: 'Baie Sérénité · Mégapparitions',
+      details: "Dans l'eau : Baie Sérénité · Mégapparitions",
       places: ['Baie Sérénité'],
       alphas: ['Baie Sérénité'],
     },
@@ -1667,12 +1805,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        "Plage Ginkgo (alentours), Mont des Capumain (alentours), Lagune des Bains (alentours), Baie Sérénité, Plage de l'Errance (alentours) · Mégapparitions",
+        "Dans l'eau : Baie Sérénité · Apparitions massives : Baie Sérénité · Alentours : Plage Ginkgo, Mont des Capumain, Lagune des Bains, Plage de l'Errance · Mégapparitions",
       places: [
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
         'Baie Sérénité',
+        'Lagune des Bains',
+        'Mont des Capumain',
+        'Plage Ginkgo',
         "Plage de l'Errance",
       ],
     },
@@ -1687,8 +1825,9 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   'mime-jr': [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Val Ferrache, Plaine Littorella · Mégapparitions',
-      places: ['Val Ferrache', 'Plaine Littorella'],
+      details:
+        'Plaine Littorella, Val Ferrache · Apparitions massives : Plaine Littorella · Mégapparitions',
+      places: ['Plaine Littorella', 'Val Ferrache'],
     },
     { region: 'Contrefort Couronné', details: 'Mégapparitions' },
   ],
@@ -1696,25 +1835,25 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'La nuit : Temple Céleste (alentours), Parvis des Prières (aussi en apparitions massives à proximité), Col Pierlevé · Mégapparitions',
-      places: ['Temple Céleste', 'Parvis des Prières', 'Col Pierlevé'],
+        'Col Pierlevé (la nuit), Parvis des Prières (la nuit), Temple Céleste (la nuit) · Mégapparitions',
+      places: ['Col Pierlevé', 'Parvis des Prières', 'Temple Céleste'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche et alentours (aussi en apparitions massives, la nuit), Terrasse du Glacier (alentours), Souterrain de Givre, Chambre des Piliers · Mégapparitions",
+        "Chambre des Piliers, Souterrain de Givre · Apparitions massives : Pente de l'Avalanche · Alentours : Terrasse du Glacier · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Terrasse du Glacier',
-        'Souterrain de Givre',
         'Chambre des Piliers',
+        "Pente de l'Avalanche",
+        'Souterrain de Givre',
+        'Terrasse du Glacier',
       ],
     },
   ],
   mismagius: [
     {
       region: 'Contrefort Couronné',
-      details: 'Col Pierlevé (la nuit) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Col Pierlevé'],
       alphas: ['Col Pierlevé'],
     },
@@ -1723,36 +1862,37 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   monferno: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plateau Cer-Mont, Île Rosa Rugosa · Mégapparitions',
+      details:
+        'Plateau Cer-Mont, Île Rosa Rugosa (rare) · Apparitions massives : Île Rosa Rugosa · Mégapparitions',
       places: ['Plateau Cer-Mont', 'Île Rosa Rugosa'],
     },
   ],
   mothim: [
-    { region: 'Plaines Obsidiennes', details: 'Bocage Agité', places: ['Bocage Agité'] },
+    { region: 'Plaines Obsidiennes', details: 'En vol : Bocage Agité', places: ['Bocage Agité'] },
     {
       region: 'Côte Lazuli',
       details:
-        'Coteau du Passage (alentours), Mont des Capumain, Chemin de la Source, Cap du Voile, Île Crache-Feu (alentours)',
+        'En vol : Cap du Voile, Chemin de la Source, Mont des Capumain · Alentours : Coteau du Passage, Île Crache-Feu',
       places: [
+        'Cap du Voile',
+        'Chemin de la Source',
         'Coteau du Passage',
         'Mont des Capumain',
-        'Chemin de la Source',
-        'Cap du Voile',
         'Île Crache-Feu',
       ],
       alphas: ['Chemin de la Source'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Forêt des Égarés, Ancienne Carrière (alentours)',
-      places: ['Forêt des Égarés', 'Ancienne Carrière'],
+      details: 'En vol : Forêt des Égarés · Alentours : Ancienne Carrière',
+      places: ['Ancienne Carrière', 'Forêt des Égarés'],
       alphas: ['Forêt des Égarés'],
     },
   ],
   'mr-mime': [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plaine Littorella · Mégapparitions',
+      details: 'Plaine Littorella · Apparitions massives : Plaine Littorella · Mégapparitions',
       places: ['Plaine Littorella'],
     },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
@@ -1766,39 +1906,39 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     },
     {
       region: 'Terres Immaculées',
-      details: 'Source Panora-Neige',
-      places: ['Source Panora-Neige'],
+      details:
+        "Sentier de l'Arène (rare), Source Panora-Neige (rare) · Apparitions massives : Sentier de l'Arène",
+      places: ["Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   murkrow: [
     {
       region: 'Marais Carmin',
-      details:
-        'Col Mer-de-Nuages (aussi en apparitions massives à proximité, la nuit) · Mégapparitions',
+      details: 'Col Mer-de-Nuages (la nuit) · Mégapparitions',
       places: ['Col Mer-de-Nuages'],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "La nuit : Coteau du Passage, Plage Ginkgo, Mont des Capumain, Lagune des Bains, Crique Paisible, Plage de l'Errance, Bois Brise-Vent, Chemin de la Source, Plage Long-des-Îles, Cap du Voile",
+        "Cap du Voile (la nuit), Coteau du Passage (la nuit), Crique Paisible (la nuit), Lagune des Bains (la nuit), Mont des Capumain (la nuit), Plage Ginkgo (la nuit), Plage Long-des-Îles (la nuit), Plage de l'Errance (la nuit) · En vol : Cap du Voile (la nuit), Plage de l'Errance (la nuit) · Alentours : Bois Brise-Vent (la nuit), Chemin de la Source (la nuit)",
       places: [
-        'Coteau du Passage',
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
-        'Crique Paisible',
-        "Plage de l'Errance",
         'Bois Brise-Vent',
-        'Chemin de la Source',
-        'Plage Long-des-Îles',
         'Cap du Voile',
+        'Chemin de la Source',
+        'Coteau du Passage',
+        'Crique Paisible',
+        'Lagune des Bains',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        'Plage Long-des-Îles',
+        "Plage de l'Errance",
       ],
     },
   ],
   ninetales: [
     {
       region: 'Côte Lazuli',
-      details: 'Île Crache-Feu · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Île Crache-Feu'],
       alphas: ['Île Crache-Feu'],
     },
@@ -1807,16 +1947,22 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   nosepass: [
     {
       region: 'Contrefort Couronné',
-      details: 'Temple Céleste, Grotte Préhistorique et alentours · Mégapparitions',
-      places: ['Temple Céleste', 'Grotte Préhistorique'],
+      details:
+        'Grotte Préhistorique, Temple Céleste · Gisements qui tremblent : Grotte Préhistorique, Parvis des Prières, Passage des Nuages · Mégapparitions',
+      places: [
+        'Grotte Préhistorique',
+        'Parvis des Prières',
+        'Passage des Nuages',
+        'Temple Céleste',
+      ],
     },
   ],
   octillery: [
     {
       region: 'Côte Lazuli',
       details:
-        "Plage de l'Errance (aussi en apparitions massives), Plage Long-des-Îles (alentours), Creux du Cap (après avoir capturé Manaphy pendant la requête 66)",
-      places: ["Plage de l'Errance", 'Plage Long-des-Îles', 'Creux du Cap'],
+        "Apparitions massives : Plage de l'Errance · Creux du Cap (après avoir capturé Manaphy pendant la requête 66) · Alentours : Plage Long-des-Îles",
+      places: ['Creux du Cap', 'Plage Long-des-Îles', "Plage de l'Errance"],
       alphas: ["Plage de l'Errance"],
     },
     { region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' },
@@ -1825,13 +1971,16 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Marais Carmin',
-      details:
-        'Marais Carlate (alentours), Hameau Diamant (alentours), Lac Courage (alentours) · Mégapparitions',
-      places: ['Marais Carlate', 'Hameau Diamant', 'Lac Courage'],
+      details: 'Alentours : Marais Carlate, Lac Courage · Mégapparitions',
+      places: ['Lac Courage', 'Marais Carlate', 'Hameau Diamant'],
       alphas: ['Hameau Diamant'],
     },
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
-    { region: 'Contrefort Couronné', details: 'Sentier Céleste', places: ['Sentier Céleste'] },
+    {
+      region: 'Contrefort Couronné',
+      details: 'Sentier Céleste · Apparitions massives : Sentier Céleste',
+      places: ['Sentier Céleste'],
+    },
   ],
   oshawott: [
     { region: 'Rusti-Cité', details: 'Pokémon de départ, offert au Siège du Groupe Galaxie' },
@@ -1844,9 +1993,9 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'En faisant évoluer Qwilfish de Hisui' },
     {
       region: 'Marais Carmin',
-      details: 'Lac Courage (un seul, pendant la mission 15)',
+      details: 'Uniquement en Baron (non confirmé)',
       places: ['Lac Courage'],
-      alphas: ['Lac Courage'],
+      alphas: ['Lac Courage (non confirmé)'],
     },
     { region: 'Côte Lazuli', details: 'Mégapparitions · En faisant évoluer Qwilfish de Hisui' },
   ],
@@ -1854,8 +2003,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée (alentours, aussi en apparitions massives), Lande Herbacoton · Mégapparitions',
-      places: ['Marais Bouchebée', 'Lande Herbacoton'],
+        "Lande Herbacoton · Arbres qui tremblent : Arène Ursa, Champ Bourdonne, Lande Herbacoton, Marais Bouchebée, Île de l'Épreuve · Mégapparitions",
+      places: [
+        'Arène Ursa',
+        'Champ Bourdonne',
+        'Lande Herbacoton',
+        'Marais Bouchebée',
+        "Île de l'Épreuve",
+      ],
       alphas: ['Marais Bouchebée'],
     },
     { region: 'Terres Immaculées', details: 'Mégapparitions' },
@@ -1876,55 +2031,56 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "Plaine d'Or, Arène Ursa (alentours), Col Mer-de-Nuages (alentours), Lisière du Hameau, Lande Herbacoton (alentours), Champ Bourdonne · Mégapparitions",
+        "Champ Bourdonne, Col Mer-de-Nuages, Lisière du Hameau, Plaine d'Or · Apparitions massives : Plaine d'Or · Alentours : Arène Ursa, Lande Herbacoton · Mégapparitions",
       places: [
-        "Plaine d'Or",
         'Arène Ursa',
-        'Col Mer-de-Nuages',
-        'Lisière du Hameau',
-        'Lande Herbacoton',
         'Champ Bourdonne',
+        'Col Mer-de-Nuages',
+        'Lande Herbacoton',
+        'Lisière du Hameau',
+        "Plaine d'Or",
       ],
     },
-    { region: 'Côte Lazuli', details: 'Bois Brise-Vent (alentours)', places: ['Bois Brise-Vent'] },
+    { region: 'Côte Lazuli', details: 'Alentours : Bois Brise-Vent', places: ['Bois Brise-Vent'] },
     {
       region: 'Contrefort Couronné',
-      details: "Hauts de l'Humilité, Forêt des Égarés",
-      places: ["Hauts de l'Humilité", 'Forêt des Égarés'],
+      details: "Forêt des Égarés, Hauts de l'Humilité",
+      places: ['Forêt des Égarés', "Hauts de l'Humilité"],
     },
   ],
   parasect: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Cellier Champêtre (alentours, aussi en apparitions massives) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Cellier Champêtre'],
       alphas: ['Cellier Champêtre (niv. 30)'],
     },
     {
       region: 'Marais Carmin',
       details:
-        "Plaine d'Or, Arène Ursa (alentours), Col Mer-de-Nuages (alentours), Lisière du Hameau, Lande Herbacoton (alentours), Champ Bourdonne · Mégapparitions",
+        "Champ Bourdonne, Col Mer-de-Nuages, Lisière du Hameau, Plaine d'Or · Apparitions massives : Plaine d'Or · Alentours : Arène Ursa, Lande Herbacoton · Mégapparitions",
       places: [
-        "Plaine d'Or",
         'Arène Ursa',
-        'Col Mer-de-Nuages',
-        'Lisière du Hameau',
-        'Lande Herbacoton',
         'Champ Bourdonne',
+        'Col Mer-de-Nuages',
+        'Lande Herbacoton',
+        'Lisière du Hameau',
+        "Plaine d'Or",
       ],
     },
     { region: 'Côte Lazuli', details: 'Bois Brise-Vent', places: ['Bois Brise-Vent'] },
     {
       region: 'Contrefort Couronné',
-      details: "Hauts de l'Humilité, Forêt des Égarés",
-      places: ["Hauts de l'Humilité", 'Forêt des Égarés'],
+      details: "Forêt des Égarés, Hauts de l'Humilité",
+      places: ['Forêt des Égarés', "Hauts de l'Humilité"],
     },
   ],
   petilil: [
     {
       region: 'Marais Carmin',
-      details: "Île de l'Épreuve, Lande Herbacoton · Mégapparitions",
-      places: ["Île de l'Épreuve", 'Lande Herbacoton'],
+      details:
+        "Lande Herbacoton, Île de l'Épreuve · Apparitions massives : Île de l'Épreuve · Mégapparitions",
+      places: ['Lande Herbacoton', "Île de l'Épreuve"],
     },
   ],
   phione: [
@@ -1939,10 +2095,10 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Colline Ambition (alentours), Champ Flora, Cellier Champêtre (le jour) · Mégapparitions',
-      places: ['Colline Ambition', 'Champ Flora', 'Cellier Champêtre'],
+        'Cellier Champêtre (le jour), Champ Flora · Alentours : Colline Ambition · Mégapparitions',
+      places: ['Cellier Champêtre', 'Champ Flora', 'Colline Ambition'],
     },
-    { region: 'Marais Carmin', details: "Plaine d'Or (alentours)", places: ["Plaine d'Or"] },
+    { region: 'Marais Carmin', details: "Alentours : Plaine d'Or", places: ["Plaine d'Or"] },
   ],
   pikachu: [
     {
@@ -1950,8 +2106,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
       details: 'Cellier Champêtre · Mégapparitions',
       places: ['Cellier Champêtre'],
     },
-    { region: 'Marais Carmin', details: "Plaine d'Or (alentours)", places: ["Plaine d'Or"] },
-    { region: 'Côte Lazuli', details: 'Bois Brise-Vent', places: ['Bois Brise-Vent'] },
+    { region: 'Marais Carmin', details: "Alentours : Plaine d'Or", places: ["Plaine d'Or"] },
+    { region: 'Côte Lazuli', details: 'Alentours : Bois Brise-Vent', places: ['Bois Brise-Vent'] },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
   ],
   piloswine: [
@@ -1959,12 +2115,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Étendue Polaire, Sentier de l'Arène et alentours, Glacier Séracrawl · Mégapparitions",
+        "Glacier Séracrawl (le jour), Pente de l'Avalanche, Étendue Polaire · Apparitions massives : Étendue Polaire · Alentours : Sentier de l'Arène · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Étendue Polaire',
-        "Sentier de l'Arène",
         'Glacier Séracrawl',
+        "Pente de l'Avalanche",
+        "Sentier de l'Arène",
+        'Étendue Polaire',
       ],
       alphas: ["Sentier de l'Arène"],
     },
@@ -1973,7 +2129,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        'Chemin de la Source (alentours), Plage Long-des-Îles (alentours, apparitions massives) · Mégapparitions',
+        'Alentours : Chemin de la Source, Plage Long-des-Îles (apparitions massives) · Mégapparitions',
       places: ['Chemin de la Source', 'Plage Long-des-Îles'],
     },
   ],
@@ -1993,24 +2149,29 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        'Chemin de la Source (alentours), Plage Long-des-Îles (alentours, apparitions massives) · Mégapparitions',
+        'Alentours : Chemin de la Source, Plage Long-des-Îles (apparitions massives) · Mégapparitions',
       places: ['Chemin de la Source', 'Plage Long-des-Îles'],
     },
   ],
   probopass: [
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte Préhistorique (alentours) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Grotte Préhistorique'],
       alphas: ['Grotte Préhistorique'],
     },
   ],
   psyduck: [
-    { region: 'Plaines Obsidiennes', details: 'Forêt Lointaine', places: ['Forêt Lointaine'] },
+    {
+      region: 'Plaines Obsidiennes',
+      details: 'Forêt Lointaine · Apparitions massives : Forêt Lointaine',
+      places: ['Forêt Lointaine'],
+    },
     {
       region: 'Marais Carmin',
-      details: "Plaine d'Or, Marais Bouchebée, Île de l'Épreuve · Mégapparitions",
-      places: ["Plaine d'Or", 'Marais Bouchebée', "Île de l'Épreuve"],
+      details:
+        "Marais Bouchebée, Plaine d'Or, Île de l'Épreuve · Apparitions massives : Plaine d'Or · Mégapparitions",
+      places: ['Marais Bouchebée', "Plaine d'Or", "Île de l'Épreuve"],
     },
     {
       region: 'Côte Lazuli',
@@ -2026,13 +2187,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   purugly: [
     {
       region: 'Côte Lazuli',
-      details: 'Coteau du Passage, Cap du Voile (aussi en apparitions massives) · Mégapparitions',
-      places: ['Coteau du Passage', 'Cap du Voile'],
+      details: 'Coteau du Passage · Apparitions massives : Cap du Voile · Mégapparitions',
+      places: ['Cap du Voile', 'Coteau du Passage'],
       alphas: ['Cap du Voile'],
     },
     {
       region: 'Terres Immaculées',
-      details: 'Terrasse du Glacier (alentours) · Mégapparitions',
+      details: 'Alentours : Terrasse du Glacier · Mégapparitions',
       places: ['Terrasse du Glacier'],
     },
   ],
@@ -2046,22 +2207,22 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   qwilfish: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Île Rosa Rugosa (alentours)',
+      details: 'Alentours : Île Rosa Rugosa',
       places: ['Île Rosa Rugosa'],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Lagune des Bains (alentours), Crique Paisible (alentours), Presqu'île Tombolo (alentours), Main de Sable (alentours), Baie Sérénité, Plage Long-des-Îles et alentours, Arche Poissigrand, Havre des Algues (alentours), Île Crache-Feu (alentours) · Mégapparitions",
+        "Dans l'eau : Arche Poissigrand, Baie Sérénité · Alentours : Lagune des Bains, Crique Paisible, Presqu'île Tombolo, Main de Sable, Plage Long-des-Îles, Havre des Algues, Île Crache-Feu · Mégapparitions",
       places: [
-        'Lagune des Bains',
-        'Crique Paisible',
-        "Presqu'île Tombolo",
-        'Main de Sable',
-        'Baie Sérénité',
-        'Plage Long-des-Îles',
         'Arche Poissigrand',
+        'Baie Sérénité',
+        'Crique Paisible',
         'Havre des Algues',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Plage Long-des-Îles',
+        "Presqu'île Tombolo",
         'Île Crache-Feu',
       ],
       alphas: ['Plage Long-des-Îles'],
@@ -2071,7 +2232,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Mégapparitions' },
     {
       region: 'Marais Carmin',
-      details: "Plaine d'Or",
+      details: 'Uniquement en Baron',
       places: ["Plaine d'Or"],
       alphas: ["Plaine d'Or"],
     },
@@ -2086,15 +2247,15 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        'Rocher Esprit (le jour), Lac Savoir (apparitions massives), Temple de Frimapic · Mégapparitions',
-      places: ['Rocher Esprit', 'Lac Savoir', 'Temple de Frimapic'],
+        'Rocher Esprit (le jour), Temple de Frimapic · Alentours : Lac Savoir (apparitions massives) · Mégapparitions',
+      places: ['Lac Savoir', 'Rocher Esprit', 'Temple de Frimapic'],
     },
   ],
   rampardos: [{ region: 'Contrefort Couronné', details: 'Distorsions spatio-temporelles' }],
   rapidash: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Val Ferrache (aussi en apparitions massives) · Mégapparitions',
+      details: 'Apparitions massives : Val Ferrache · Mégapparitions',
       places: ['Val Ferrache'],
       alphas: ['Val Ferrache (niv. 40)'],
     },
@@ -2112,42 +2273,43 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        "Lagune des Bains (alentours), Crique Paisible (alentours), Rive des Revenants (alentours), Presqu'île Tombolo (alentours), Main de Sable, Baie Sérénité, Plage de l'Errance (alentours)",
+        "Dans l'eau : Baie Sérénité, Crique Paisible, Main de Sable · Alentours : Lagune des Bains, Rive des Revenants, Presqu'île Tombolo, Plage de l'Errance",
       places: [
-        'Lagune des Bains',
-        'Crique Paisible',
-        'Rive des Revenants',
-        "Presqu'île Tombolo",
-        'Main de Sable',
         'Baie Sérénité',
+        'Crique Paisible',
+        'Lagune des Bains',
+        'Main de Sable',
         "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
       ],
     },
   ],
   rhydon: [
     {
       region: 'Marais Carmin',
-      details: 'Pente des Gringoles · Mégapparitions',
+      details: 'Apparitions massives : Pente des Gringoles · Mégapparitions',
       places: ['Pente des Gringoles'],
     },
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste, Parvis des Prières · Mégapparitions',
-      places: ['Sentier Céleste', 'Parvis des Prières'],
+      details: 'Parvis des Prières, Sentier Céleste · Mégapparitions',
+      places: ['Parvis des Prières', 'Sentier Céleste'],
     },
   ],
   rhyhorn: [
     {
       region: 'Marais Carmin',
-      details: 'Ruines Brumeuses, Lisière du Hameau, Pente des Gringoles · Mégapparitions',
-      places: ['Ruines Brumeuses', 'Lisière du Hameau', 'Pente des Gringoles'],
+      details:
+        'Lisière du Hameau, Pente des Gringoles, Ruines Brumeuses · Apparitions massives : Pente des Gringoles · Mégapparitions',
+      places: ['Lisière du Hameau', 'Pente des Gringoles', 'Ruines Brumeuses'],
       alphas: ['Lisière du Hameau'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste, Parvis des Prières · Mégapparitions',
-      places: ['Sentier Céleste', 'Parvis des Prières'],
+      details: 'Parvis des Prières, Sentier Céleste · Mégapparitions',
+      places: ['Parvis des Prières', 'Sentier Céleste'],
     },
   ],
   rhyperior: [
@@ -2155,7 +2317,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
-      details: 'Parvis des Prières (alentours) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Parvis des Prières'],
       alphas: ['Parvis des Prières'],
     },
@@ -2164,23 +2326,28 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
-      details: "Chute d'Oglacé, Source Panora-Neige · Mégapparitions",
-      places: ["Chute d'Oglacé", 'Source Panora-Neige'],
+      details:
+        "Chute d'Oglacé, Sentier de l'Arène (rare), Source Panora-Neige (rare) · Apparitions massives : Chute d'Oglacé · Mégapparitions",
+      places: ["Chute d'Oglacé", "Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   roselia: [
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée, Col Mer-de-Nuages et alentours, Lande Herbacoton (alentours) · Mégapparitions',
-      places: ['Marais Bouchebée', 'Col Mer-de-Nuages', 'Lande Herbacoton'],
+        'Col Mer-de-Nuages, Marais Bouchebée · Alentours : Lande Herbacoton · Mégapparitions',
+      places: ['Col Mer-de-Nuages', 'Lande Herbacoton', 'Marais Bouchebée'],
     },
-    { region: 'Contrefort Couronné', details: 'Source Féérique', places: ['Source Féérique'] },
+    {
+      region: 'Contrefort Couronné',
+      details: 'Source Féérique · Apparitions massives : Source Féérique',
+      places: ['Source Féérique'],
+    },
   ],
   roserade: [
     {
       region: 'Marais Carmin',
-      details: 'Col Mer-de-Nuages (le jour) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Col Mer-de-Nuages'],
       alphas: ['Col Mer-de-Nuages'],
     },
@@ -2189,8 +2356,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Temple Céleste (dans des caisses), Parvis des Prières (dans des caisses), Col Pierlevé',
-      places: ['Temple Céleste', 'Parvis des Prières', 'Col Pierlevé'],
+        'Col Pierlevé · Temple Céleste (dans des caisses) · Parvis des Prières (dans des caisses)',
+      places: ['Col Pierlevé', 'Parvis des Prières', 'Temple Céleste'],
     },
   ],
   rowlet: [
@@ -2205,8 +2372,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        'Glacier Séracrawl (alentours), Rocher Esprit, Lac Savoir, Hameau Perle (alentours) · Mégapparitions',
-      places: ['Glacier Séracrawl', 'Rocher Esprit', 'Lac Savoir', 'Hameau Perle'],
+        'En vol : Lac Savoir, Rocher Esprit · Apparitions massives : Lac Savoir · Alentours : Glacier Séracrawl, Hameau Perle · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Hameau Perle', 'Lac Savoir', 'Rocher Esprit'],
     },
   ],
   samurott: [
@@ -2220,13 +2387,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   scyther: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Forêt Lointaine, Arène du Grand Arbre · Mégapparitions',
-      places: ['Forêt Lointaine', 'Arène du Grand Arbre'],
+      details: 'Forêt Lointaine · Alentours : Arène du Grand Arbre · Mégapparitions',
+      places: ['Arène du Grand Arbre', 'Forêt Lointaine'],
       alphas: ['Arène du Grand Arbre (niv. 42)'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Grotte Préhistorique (alentours)',
+      details: 'Alentours : Grotte Préhistorique',
       places: ['Grotte Préhistorique'],
     },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
@@ -2235,7 +2402,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Mégapparitions' },
     {
       region: 'Côte Lazuli',
-      details: 'Crique Paisible, Plage Long-des-Îles · Mégapparitions',
+      details:
+        'Crique Paisible, Plage Long-des-Îles · Apparitions massives : Crique Paisible · Mégapparitions',
       places: ['Crique Paisible', 'Plage Long-des-Îles'],
     },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
@@ -2250,12 +2418,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   shellos: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Mer Occident : Île Rosa Rugosa, Plaine Littorella · Mégapparitions',
-      places: ['Île Rosa Rugosa', 'Plaine Littorella'],
+      details:
+        'Plaine Littorella, Île Rosa Rugosa · Apparitions massives : Île Rosa Rugosa · Mégapparitions',
+      places: ['Plaine Littorella', 'Île Rosa Rugosa'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Mer Orient : Baie Sérénité, Havre des Algues · Mégapparitions',
+      details:
+        'Baie Sérénité, Havre des Algues · Apparitions massives : Havre des Algues · Mégapparitions',
       places: ['Baie Sérénité', 'Havre des Algues'],
     },
   ],
@@ -2264,28 +2434,31 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Colline Ambition (alentours), Champ Flora (alentours), Plateau Cer-Mont, Tunnel de Fer (alentours) · Mégapparitions',
-      places: ['Colline Ambition', 'Champ Flora', 'Plateau Cer-Mont', 'Tunnel de Fer'],
+        'Champ Flora, Plateau Cer-Mont · Alentours : Colline Ambition, Tunnel de Fer · Mégapparitions',
+      places: ['Champ Flora', 'Colline Ambition', 'Plateau Cer-Mont', 'Tunnel de Fer'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier des Pèlerins, Parvis des Prières · Mégapparitions',
-      places: ['Sentier des Pèlerins', 'Parvis des Prières'],
+      details:
+        'Parvis des Prières, Sentier des Pèlerins · Apparitions massives : Sentier des Pèlerins · Mégapparitions',
+      places: ['Parvis des Prières', 'Sentier des Pèlerins'],
     },
   ],
   silcoon: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Le jour : Champ Flora, Val Ferrache, Forêt Lointaine · Mégapparitions',
-      places: ['Champ Flora', 'Val Ferrache', 'Forêt Lointaine'],
-      alphas: ['Val Ferrache'],
+      details:
+        'Champ Flora (le jour), Forêt Lointaine (le jour) · Apparitions massives : Champ Flora · Mégapparitions',
+      places: ['Champ Flora', 'Forêt Lointaine', 'Val Ferrache'],
+      alphas: ['Val Ferrache (non confirmé)'],
     },
   ],
   skorupi: [
     { region: 'Marais Carmin', details: 'Mégapparitions' },
     {
       region: 'Côte Lazuli',
-      details: "Plage Ginkgo, Plage de l'Errance · Mégapparitions",
+      details:
+        "Plage Ginkgo, Plage de l'Errance · Apparitions massives : Plage de l'Errance · Mégapparitions",
       places: ['Plage Ginkgo', "Plage de l'Errance"],
     },
   ],
@@ -2299,36 +2472,35 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours), Sentier Céleste (alentours) · Mégapparitions',
+      details: 'Alentours : Ancienne Carrière, Sentier Céleste · Mégapparitions',
       places: ['Ancienne Carrière', 'Sentier Céleste'],
     },
   ],
   sliggoo: [
     {
       region: 'Marais Carmin',
-      details: "Île de l'Épreuve, Arène Ursa (apparitions massives) · Mégapparitions",
-      places: ["Île de l'Épreuve", 'Arène Ursa'],
+      details: 'Apparitions massives : Arène Ursa · Mégapparitions',
+      places: ['Arène Ursa', "Île de l'Épreuve"],
       alphas: ["Île de l'Épreuve"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours)',
+      details: 'Alentours : Ancienne Carrière',
       places: ['Ancienne Carrière'],
     },
   ],
   sneasel: [
-    { region: 'Plaines Obsidiennes', details: 'Forme classique : distorsions spatio-temporelles' },
+    { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Contrefort Couronné',
-      details:
-        'Forme de Hisui : Sentier Céleste (alentours), Grotte Préhistorique (alentours) · Mégapparitions',
-      places: ['Sentier Céleste', 'Grotte Préhistorique'],
+      details: 'Alentours : Sentier Céleste, Grotte Préhistorique · Mégapparitions',
+      places: ['Grotte Préhistorique', 'Sentier Céleste'],
     },
     {
       region: 'Terres Immaculées',
       details:
-        'Glacier Séracrawl (alentours), Terrasse du Glacier, Hameau Perle (alentours, forme de Hisui)',
-      places: ['Glacier Séracrawl', 'Terrasse du Glacier', 'Hameau Perle'],
+        'Terrasse du Glacier · Hameau Perle (alentours, forme de Hisui) · Alentours : Glacier Séracrawl',
+      places: ['Glacier Séracrawl', 'Hameau Perle', 'Terrasse du Glacier'],
       alphas: ['Glacier Séracrawl'],
     },
   ],
@@ -2343,23 +2515,32 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   snorlax: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Plaine Littorella (alentours) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Plaine Littorella'],
       alphas: ['Plaine Littorella (niv. 45)'],
     },
     { region: 'Marais Carmin', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Terres Immaculées',
-      details: 'Source Panora-Neige',
-      places: ['Source Panora-Neige'],
+      details: "Sentier de l'Arène (rare), Source Panora-Neige (rare)",
+      places: ["Sentier de l'Arène", 'Source Panora-Neige'],
     },
   ],
   snorunt: [
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Vallée Enneigée, Étendue Polaire, Hameau Perle (alentours) · Mégapparitions",
-      places: ["Pente de l'Avalanche", 'Vallée Enneigée', 'Étendue Polaire', 'Hameau Perle'],
+        "Pente de l'Avalanche, Vallée Enneigée, Étendue Polaire · Gisements qui tremblent : Chute d'Oglacé, Hameau Perle, Pente de l'Avalanche, Rocher Esprit, Sentier de l'Arène, Terrasse du Glacier, Étendue Polaire · Mégapparitions",
+      places: [
+        "Chute d'Oglacé",
+        'Hameau Perle',
+        "Pente de l'Avalanche",
+        'Rocher Esprit',
+        "Sentier de l'Arène",
+        'Terrasse du Glacier',
+        'Vallée Enneigée',
+        'Étendue Polaire',
+      ],
     },
   ],
   snover: [
@@ -2367,24 +2548,25 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        "Étendue Polaire, Sentier de l'Arène (alentours), Glacier Séracrawl (alentours), Terrasse du Glacier · Mégapparitions",
-      places: ['Étendue Polaire', "Sentier de l'Arène", 'Glacier Séracrawl', 'Terrasse du Glacier'],
+        "Terrasse du Glacier, Étendue Polaire · Apparitions massives : Terrasse du Glacier · Alentours : Sentier de l'Arène, Glacier Séracrawl · Mégapparitions",
+      places: ['Glacier Séracrawl', "Sentier de l'Arène", 'Terrasse du Glacier', 'Étendue Polaire'],
     },
   ],
   spheal: [
     { region: 'Plaines Obsidiennes', details: 'Mégapparitions' },
     {
       region: 'Côte Lazuli',
-      details: 'Plage Ginkgo, Crique Paisible · Mégapparitions',
-      places: ['Plage Ginkgo', 'Crique Paisible'],
+      details:
+        'Crique Paisible, Plage Ginkgo · Apparitions massives : Crique Paisible · Mégapparitions',
+      places: ['Crique Paisible', 'Plage Ginkgo'],
     },
   ],
   spiritomb: [
     {
       region: 'Marais Carmin',
-      details: 'Ruines Brumeuses · Mégapparitions (après la requête 22)',
+      details: 'Ruines Brumeuses (la nuit, rare) · Mégapparitions (après la requête 22)',
       places: ['Ruines Brumeuses'],
-      alphas: ['Ruines Brumeuses'],
+      alphas: ['Ruines Brumeuses (non confirmé)'],
     },
   ],
   stantler: [
@@ -2397,52 +2579,55 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Bois Brise-Vent', places: ['Bois Brise-Vent'] },
     {
       region: 'Contrefort Couronné',
-      details: 'Forêt des Égarés, Terrasse du Glacier (alentours)',
+      details: 'Forêt des Égarés · Alentours : Terrasse du Glacier',
       places: ['Forêt des Égarés', 'Terrasse du Glacier'],
     },
-    { region: 'Terres Immaculées', details: 'Rencontre sauvage (lieu précis non répertorié)' },
+    {
+      region: 'Terres Immaculées',
+      details: 'Le jour, dans un coin sans nom de sous-zone · Apparitions massives',
+    },
   ],
   staraptor: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Cellier Champêtre (alentours, en vol), Lac Vérité (alentours, aussi en apparitions massives, le jour) · Mégapparitions',
+        'Apparitions massives : Lac Vérité · Alentours : Cellier Champêtre (en vol) · Mégapparitions',
       places: ['Cellier Champêtre', 'Lac Vérité'],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Rive des Revenants (le jour), Baie Sérénité (le jour), Plage de l'Errance (alentours, en vol), Chemin de la Source (le jour) · Mégapparitions",
-      places: ['Rive des Revenants', 'Baie Sérénité', "Plage de l'Errance", 'Chemin de la Source'],
+        "Baie Sérénité (le jour) · En vol : Rive des Revenants (le jour) · Apparitions massives : Baie Sérénité · Alentours : Plage de l'Errance (en vol), Chemin de la Source (le jour) · Mégapparitions",
+      places: ['Baie Sérénité', 'Chemin de la Source', "Plage de l'Errance", 'Rive des Revenants'],
     },
   ],
   staravia: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Le jour : Plateau Cer-Mont, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire, Chute d'Obsidienne (alentours), Île Rosa Rugosa, Plaine Littorella (apparitions massives à proximité) · Mégapparitions",
+        "Plateau Cer-Mont (le jour) · En vol : Cellier Champêtre (le jour), Digue de l'Estuaire (le jour), Plaine Littorella (le jour), Plateau Cer-Mont (le jour), Rive Filevent (le jour), Île Rosa Rugosa (le jour) · Alentours : Chute d'Obsidienne (le jour) · Mégapparitions",
       places: [
+        'Cellier Champêtre',
+        "Chute d'Obsidienne",
+        "Digue de l'Estuaire",
+        'Plaine Littorella',
         'Plateau Cer-Mont',
         'Rive Filevent',
-        'Cellier Champêtre',
-        "Digue de l'Estuaire",
-        "Chute d'Obsidienne",
         'Île Rosa Rugosa',
-        'Plaine Littorella',
       ],
       alphas: ['Rive Filevent (niv. 32)'],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Le jour : Coteau du Passage, Lagune des Bains, Rive des Revenants (aussi en apparitions massives), Main de Sable, Baie Sérénité, Plage de l'Errance (alentours) · Mégapparitions",
+        "Baie Sérénité (le jour), Lagune des Bains (le jour) · En vol : Baie Sérénité (le jour), Coteau du Passage (le jour), Lagune des Bains (le jour), Main de Sable (le jour), Rive des Revenants (le jour) · Alentours : Plage de l'Errance (le jour) · Mégapparitions",
       places: [
+        'Baie Sérénité',
         'Coteau du Passage',
         'Lagune des Bains',
-        'Rive des Revenants',
         'Main de Sable',
-        'Baie Sérénité',
         "Plage de l'Errance",
+        'Rive des Revenants',
       ],
     },
   ],
@@ -2450,31 +2635,31 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        "Le jour : Colline Ambition, Val Ferrache, Pont Rocheux (alentours), Sentier Cer-Mont, Plateau Cer-Mont, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire, Chute d'Obsidienne (alentours), Île Rosa Rugosa · Mégapparitions",
+        "Plateau Cer-Mont (le jour) · En vol : Cellier Champêtre (le jour), Colline Ambition (le jour), Digue de l'Estuaire (le jour), Plateau Cer-Mont (le jour), Rive Filevent (le jour), Sentier Cer-Mont (le jour), Val Ferrache (le jour), Île Rosa Rugosa (le jour) · Apparitions massives : Sentier Cer-Mont · Alentours : Pont Rocheux (le jour), Chute d'Obsidienne (le jour) · Mégapparitions",
       places: [
-        'Colline Ambition',
-        'Val Ferrache',
-        'Pont Rocheux',
-        'Sentier Cer-Mont',
-        'Plateau Cer-Mont',
-        'Rive Filevent',
         'Cellier Champêtre',
-        "Digue de l'Estuaire",
         "Chute d'Obsidienne",
+        'Colline Ambition',
+        "Digue de l'Estuaire",
+        'Plateau Cer-Mont',
+        'Pont Rocheux',
+        'Rive Filevent',
+        'Sentier Cer-Mont',
+        'Val Ferrache',
         'Île Rosa Rugosa',
       ],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Le jour : Coteau du Passage, Lagune des Bains, Rive des Revenants, Main de Sable, Baie Sérénité, Plage de l'Errance (alentours) · Mégapparitions",
+        "Lagune des Bains (le jour) · En vol : Baie Sérénité (le jour), Coteau du Passage (le jour), Main de Sable (le jour), Rive des Revenants (le jour) · Alentours : Plage de l'Errance (le jour) · Mégapparitions",
       places: [
+        'Baie Sérénité',
         'Coteau du Passage',
         'Lagune des Bains',
-        'Rive des Revenants',
         'Main de Sable',
-        'Baie Sérénité',
         "Plage de l'Errance",
+        'Rive des Revenants',
       ],
     },
   ],
@@ -2483,7 +2668,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier Céleste · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Sentier Céleste'],
       alphas: ['Sentier Céleste'],
     },
@@ -2496,33 +2681,29 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours), Sentier Céleste (alentours) · Mégapparitions',
+      details: 'Alentours : Ancienne Carrière, Sentier Céleste · Mégapparitions',
       places: ['Ancienne Carrière', 'Sentier Céleste'],
     },
   ],
   sudowoodo: [
     {
       region: 'Marais Carmin',
-      details: 'Col Mer-de-Nuages et alentours · Mégapparitions',
+      details: 'Apparitions massives : Col Mer-de-Nuages · Mégapparitions',
       places: ['Col Mer-de-Nuages'],
     },
-    {
-      region: 'Contrefort Couronné',
-      details: 'Temple Céleste et alentours',
-      places: ['Temple Céleste'],
-    },
+    { region: 'Contrefort Couronné', details: 'Temple Céleste', places: ['Temple Céleste'] },
   ],
   swinub: [
     { region: 'Marais Carmin', details: 'Mégapparitions' },
     {
       region: 'Terres Immaculées',
       details:
-        "Pente de l'Avalanche, Étendue Polaire, Sentier de l'Arène (alentours), Glacier Séracrawl · Mégapparitions",
+        "Glacier Séracrawl (le jour), Pente de l'Avalanche, Étendue Polaire · Apparitions massives : Étendue Polaire · Alentours : Sentier de l'Arène · Mégapparitions",
       places: [
-        "Pente de l'Avalanche",
-        'Étendue Polaire',
-        "Sentier de l'Arène",
         'Glacier Séracrawl',
+        "Pente de l'Avalanche",
+        "Sentier de l'Arène",
+        'Étendue Polaire',
       ],
       alphas: ['Étendue Polaire'],
     },
@@ -2534,25 +2715,25 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   tangela: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée et alentours, Lande Herbacoton (alentours) · Mégapparitions',
-      places: ['Marais Bouchebée', 'Lande Herbacoton'],
+      details: 'Marais Bouchebée · Alentours : Lande Herbacoton · Mégapparitions',
+      places: ['Lande Herbacoton', 'Marais Bouchebée'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Coteau du Passage (alentours)',
+      details: 'Alentours : Coteau du Passage',
       places: ['Coteau du Passage'],
     },
   ],
   tangrowth: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée (aussi en apparitions massives à proximité) · Mégapparitions',
+      details: 'Mégapparitions',
       places: ['Marais Bouchebée'],
       alphas: ['Marais Bouchebée'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Coteau du Passage (alentours, apparitions massives)',
+      details: 'Alentours : Coteau du Passage (apparitions massives)',
       places: ['Coteau du Passage'],
     },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
@@ -2561,12 +2742,12 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        "Plaine d'Or (alentours, apparitions massives), Arène Ursa, Champ Bourdonne (alentours) · Mégapparitions",
-      places: ["Plaine d'Or", 'Arène Ursa', 'Champ Bourdonne'],
+        "Arène Ursa · Alentours : Plaine d'Or (apparitions massives), Champ Bourdonne · Mégapparitions",
+      places: ['Arène Ursa', 'Champ Bourdonne', "Plaine d'Or"],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier des Pèlerins',
+      details: 'Sentier des Pèlerins · Apparitions massives : Sentier des Pèlerins',
       places: ['Sentier des Pèlerins'],
     },
   ],
@@ -2574,16 +2755,16 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details:
-        'Plage Long-des-Îles (alentours), Arche Poissigrand, Havre des Algues · Mégapparitions',
-      places: ['Plage Long-des-Îles', 'Arche Poissigrand', 'Havre des Algues'],
+        "Dans l'eau : Arche Poissigrand, Havre des Algues · Alentours : Plage Long-des-Îles · Mégapparitions",
+      places: ['Arche Poissigrand', 'Havre des Algues', 'Plage Long-des-Îles'],
     },
   ],
   tentacruel: [
     {
       region: 'Côte Lazuli',
       details:
-        'Plage Long-des-Îles (alentours), Arche Poissigrand, Havre des Algues · Mégapparitions',
-      places: ['Plage Long-des-Îles', 'Arche Poissigrand', 'Havre des Algues'],
+        "Dans l'eau : Arche Poissigrand, Havre des Algues · Alentours : Plage Long-des-Îles · Mégapparitions",
+      places: ['Arche Poissigrand', 'Havre des Algues', 'Plage Long-des-Îles'],
       alphas: ['Arche Poissigrand'],
     },
   ],
@@ -2591,31 +2772,35 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Côte Lazuli',
       details: "Entre Main de Sable et Arche Poissigrand (un seul, par temps d'orage)",
-      places: ['Main de Sable', 'Arche Poissigrand'],
+      places: ['Arche Poissigrand', 'Main de Sable'],
     },
   ],
   togekiss: [
-    { region: 'Plaines Obsidiennes', details: 'Lac Vérité (en vol)', places: ['Lac Vérité'] },
+    { region: 'Plaines Obsidiennes', details: 'En vol : Lac Vérité', places: ['Lac Vérité'] },
     { region: 'Côte Lazuli', details: 'Mégapparitions' },
   ],
   togepi: [
-    { region: 'Marais Carmin', details: 'Lande Herbacoton', places: ['Lande Herbacoton'] },
+    {
+      region: 'Marais Carmin',
+      details: 'Lande Herbacoton · Apparitions massives : Lande Herbacoton',
+      places: ['Lande Herbacoton'],
+    },
     {
       region: 'Côte Lazuli',
       details:
-        'Le jour : Lagune des Bains (aussi en apparitions massives), Baie Sérénité · Mégapparitions',
-      places: ['Lagune des Bains', 'Baie Sérénité'],
+        'Baie Sérénité (le jour), Lagune des Bains (le jour) · Apparitions massives : Lagune des Bains · Mégapparitions',
+      places: ['Baie Sérénité', 'Lagune des Bains'],
     },
   ],
   togetic: [
     {
       region: 'Marais Carmin',
-      details: 'En vol : Pente des Gringoles (alentours), Lande Herbacoton (alentours)',
-      places: ['Pente des Gringoles', 'Lande Herbacoton'],
+      details: 'Alentours : Pente des Gringoles (en vol), Lande Herbacoton (en vol)',
+      places: ['Lande Herbacoton', 'Pente des Gringoles'],
     },
     {
       region: 'Côte Lazuli',
-      details: 'Baie Sérénité (le jour) · Mégapparitions',
+      details: 'Baie Sérénité (le jour, rare) · Mégapparitions',
       places: ['Baie Sérénité'],
     },
   ],
@@ -2629,7 +2814,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   torterra: [
     {
       region: 'Marais Carmin',
-      details: "Île de l'Épreuve · Mégapparitions",
+      details: 'Mégapparitions',
       places: ["Île de l'Épreuve"],
       alphas: ["Île de l'Épreuve"],
     },
@@ -2638,21 +2823,21 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Marais Carmin',
-      details: "Île de l'Épreuve · Mégapparitions",
+      details: "Île de l'Épreuve · Apparitions massives : Île de l'Épreuve · Mégapparitions",
       places: ["Île de l'Épreuve"],
       alphas: ["Île de l'Épreuve"],
     },
     { region: 'Côte Lazuli', details: 'Chemin de la Source', places: ['Chemin de la Source'] },
     {
       region: 'Contrefort Couronné',
-      details: 'Ancienne Carrière (alentours)',
+      details: 'Alentours : Ancienne Carrière',
       places: ['Ancienne Carrière'],
     },
   ],
   turtwig: [
     {
       region: 'Marais Carmin',
-      details: 'Champ Bourdonne (alentours) · Mégapparitions',
+      details: 'Alentours : Champ Bourdonne · Mégapparitions',
       places: ['Champ Bourdonne'],
     },
   ],
@@ -2668,7 +2853,7 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        'Ruines Bonvivre · Mégapparitions (les 28 formes, après avoir complété les notes de recherche sur les Zarbi)',
+        'Ruines Bonvivre (rare) · Mégapparitions (les 28 formes, après avoir complété les notes de recherche sur les Zarbi)',
       places: ['Ruines Bonvivre'],
     },
   ],
@@ -2681,14 +2866,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     { region: 'Plaines Obsidiennes', details: 'Distorsions spatio-temporelles' },
     {
       region: 'Marais Carmin',
-      details:
-        'Marais Bouchebée (alentours), Arène Ursa, Champ Bourdonne (alentours) · Mégapparitions',
-      places: ['Marais Bouchebée', 'Arène Ursa', 'Champ Bourdonne'],
+      details: 'Alentours : Champ Bourdonne · Mégapparitions',
+      places: ['Champ Bourdonne', 'Marais Bouchebée', 'Arène Ursa'],
       alphas: ['Marais Bouchebée', 'Arène Ursa'],
     },
     {
       region: 'Contrefort Couronné',
-      details: 'Sentier des Pèlerins',
+      details: 'Sentier des Pèlerins · Apparitions massives : Sentier des Pèlerins',
       places: ['Sentier des Pèlerins'],
     },
   ],
@@ -2703,14 +2887,14 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   vespiquen: [
     {
       region: 'Plaines Obsidiennes',
-      details: 'Bocage Agité (un seul, pendant la mission 20)',
+      details: 'Uniquement en Baron (non confirmé)',
       places: ['Bocage Agité'],
-      alphas: ['Bocage Agité'],
+      alphas: ['Bocage Agité (non confirmé)'],
     },
     {
       region: 'Marais Carmin',
-      details: 'Lande Herbacoton (alentours), Champ Bourdonne (alentours), Lac Courage (alentours)',
-      places: ['Lande Herbacoton', 'Champ Bourdonne', 'Lac Courage'],
+      details: 'Arbres qui tremblent : Champ Bourdonne, Lande Herbacoton · Alentours : Lac Courage',
+      places: ['Champ Bourdonne', 'Lac Courage', 'Lande Herbacoton'],
       alphas: ['Lande Herbacoton'],
     },
   ],
@@ -2718,20 +2902,27 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Contrefort Couronné',
       details:
-        'Temple Céleste (dans des caisses), Parvis des Prières (aussi dans des caisses) · Mégapparitions',
-      places: ['Temple Céleste', 'Parvis des Prières'],
+        'Temple Céleste (dans des caisses) · Parvis des Prières (aussi dans des caisses) · Mégapparitions',
+      places: ['Parvis des Prières', 'Temple Céleste'],
     },
   ],
   vulpix: [
-    { region: 'Côte Lazuli', details: 'Cap du Voile · Mégapparitions', places: ['Cap du Voile'] },
-    { region: 'Terres Immaculées', details: 'Mégapparitions' },
+    {
+      region: 'Côte Lazuli',
+      details: 'Cap du Voile · Apparitions massives : Cap du Voile · Mégapparitions',
+      places: ['Cap du Voile'],
+    },
+    {
+      region: 'Terres Immaculées',
+      details: 'Gisements qui tremblent : Vallée Enneigée (rare) · Mégapparitions',
+      places: ['Vallée Enneigée'],
+    },
   ],
   walrein: [
     {
       region: 'Côte Lazuli',
-      details:
-        'Plage Ginkgo, Crique Paisible (apparitions massives), Plage Long-des-Îles · Mégapparitions',
-      places: ['Plage Ginkgo', 'Crique Paisible', 'Plage Long-des-Îles'],
+      details: 'Plage Long-des-Îles · Apparitions massives : Crique Paisible · Mégapparitions',
+      places: ['Crique Paisible', 'Plage Long-des-Îles', 'Plage Ginkgo'],
       alphas: ['Plage Ginkgo'],
     },
     { region: 'Terres Immaculées', details: 'Distorsions spatio-temporelles' },
@@ -2741,13 +2932,13 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Marais Carmin',
       details:
-        'Marais Bouchebée et alentours, Arène Ursa (alentours), Marais Carlate (apparitions massives), Champ Bourdonne (alentours), Lac Courage · Mégapparitions',
+        "Dans l'eau : Lac Courage, Marais Bouchebée · Alentours : Arène Ursa, Marais Carlate (apparitions massives), Champ Bourdonne · Mégapparitions",
       places: [
-        'Marais Bouchebée',
         'Arène Ursa',
-        'Marais Carlate',
         'Champ Bourdonne',
         'Lac Courage',
+        'Marais Bouchebée',
+        'Marais Carlate',
       ],
       alphas: ['Lac Courage'],
     },
@@ -2757,70 +2948,69 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Cape Plante, arbres qui tremblent : Champ Flora (alentours), Bocage Agité, Plaine Littorella, Lac Vérité',
-      places: ['Champ Flora', 'Bocage Agité', 'Plaine Littorella', 'Lac Vérité'],
+        'Arbres qui tremblent : Bocage Agité (rare), Lac Vérité, Plaine Littorella · Alentours : Champ Flora',
+      places: ['Bocage Agité', 'Champ Flora', 'Lac Vérité', 'Plaine Littorella'],
     },
     {
       region: 'Marais Carmin',
-      details:
-        "Cape Sable, arbres qui tremblent : Plaine d'Or (alentours), Marais Bouchebée (alentours)",
-      places: ["Plaine d'Or", 'Marais Bouchebée'],
+      details: "Alentours : Plaine d'Or, Marais Bouchebée (arbres qui tremblent)",
+      places: ['Marais Bouchebée', "Plaine d'Or"],
     },
     {
       region: 'Côte Lazuli',
       details:
-        "Cape Déchet, arbres qui tremblent : Coteau du Passage, Plage Ginkgo, Mont des Capumain, Lagune des Bains, Crique Paisible, Rive des Revenants (alentours), Presqu'île Tombolo, Main de Sable, Baie Sérénité, Plage de l'Errance, Bois Brise-Vent, Chemin de la Source, Plage Long-des-Îles (alentours), Cap du Voile, Arche Poissigrand, Havre des Algues, Île Crache-Feu (alentours)",
+        "Arbres qui tremblent : Arche Poissigrand, Baie Sérénité, Bois Brise-Vent, Cap du Voile, Chemin de la Source, Coteau du Passage, Crique Paisible, Havre des Algues, Lagune des Bains, Main de Sable, Mont des Capumain, Plage Ginkgo, Plage de l'Errance, Presqu'île Tombolo · Alentours : Rive des Revenants, Plage Long-des-Îles, Île Crache-Feu (arbres qui tremblent)",
       places: [
-        'Coteau du Passage',
-        'Plage Ginkgo',
-        'Mont des Capumain',
-        'Lagune des Bains',
-        'Crique Paisible',
-        'Rive des Revenants',
-        "Presqu'île Tombolo",
-        'Main de Sable',
-        'Baie Sérénité',
-        "Plage de l'Errance",
-        'Bois Brise-Vent',
-        'Chemin de la Source',
-        'Plage Long-des-Îles',
-        'Cap du Voile',
         'Arche Poissigrand',
+        'Baie Sérénité',
+        'Bois Brise-Vent',
+        'Cap du Voile',
+        'Chemin de la Source',
+        'Coteau du Passage',
+        'Crique Paisible',
         'Havre des Algues',
+        'Lagune des Bains',
+        'Main de Sable',
+        'Mont des Capumain',
+        'Plage Ginkgo',
+        'Plage Long-des-Îles',
+        "Plage de l'Errance",
+        "Presqu'île Tombolo",
+        'Rive des Revenants',
         'Île Crache-Feu',
       ],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        "Cape Sable, arbres qui tremblent : Hauts de l'Humilité, Ancienne Carrière (alentours), Falaise Calade, Temple Céleste, Sentier Céleste (alentours), Parvis des Prières, Col Pierlevé, Source Féérique, Passage des Nuages",
+        "Arbres qui tremblent : Col Pierlevé, Falaise Calade, Hauts de l'Humilité, Parvis des Prières, Passage des Nuages, Source Féérique, Temple Céleste · Alentours : Ancienne Carrière, Sentier Céleste",
       places: [
-        "Hauts de l'Humilité",
         'Ancienne Carrière',
-        'Falaise Calade',
-        'Temple Céleste',
-        'Sentier Céleste',
-        'Parvis des Prières',
         'Col Pierlevé',
-        'Source Féérique',
+        'Falaise Calade',
+        "Hauts de l'Humilité",
+        'Parvis des Prières',
         'Passage des Nuages',
+        'Sentier Céleste',
+        'Source Féérique',
+        'Temple Céleste',
       ],
     },
     {
       region: 'Terres Immaculées',
       details:
-        "Cape Déchet, arbres qui tremblent : Pente de l'Avalanche, Vallée Enneigée, Étendue Polaire, Chute d'Oglacé, Sentier de l'Arène, Glacier Séracrawl (alentours), Terrasse du Glacier, Rocher Esprit, Lac Savoir, Hameau Perle (alentours)",
+        "Arbres qui tremblent : Chute d'Oglacé, Lac Savoir, Pente de l'Avalanche, Rocher Esprit, Sentier de l'Arène, Terrasse du Glacier, Vallée Enneigée, Étendue Polaire · Alentours : Glacier Séracrawl, Hameau Perle (arbres qui tremblent)",
       places: [
+        "Chute d'Oglacé",
+        'Glacier Séracrawl',
+        'Hameau Perle',
+        'Lac Savoir',
         "Pente de l'Avalanche",
+        'Rocher Esprit',
+        "Sentier de l'Arène",
+        'Terrasse du Glacier',
         'Vallée Enneigée',
         'Étendue Polaire',
-        "Chute d'Oglacé",
-        "Sentier de l'Arène",
-        'Glacier Séracrawl',
-        'Terrasse du Glacier',
-        'Rocher Esprit',
-        'Lac Savoir',
-        'Hameau Perle',
       ],
     },
   ],
@@ -2828,8 +3018,8 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Plaines Obsidiennes',
       details:
-        'Colline Ambition (alentours), Champ Flora, Val Ferrache, Forêt Lointaine · Mégapparitions',
-      places: ['Colline Ambition', 'Champ Flora', 'Val Ferrache', 'Forêt Lointaine'],
+        'Champ Flora, Forêt Lointaine, Val Ferrache · Alentours : Colline Ambition · Mégapparitions',
+      places: ['Champ Flora', 'Colline Ambition', 'Forêt Lointaine', 'Val Ferrache'],
     },
   ],
   wyrdeer: [
@@ -2841,26 +3031,28 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
   yanma: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée, Arène Ursa, Champ Bourdonne · Mégapparitions',
-      places: ['Marais Bouchebée', 'Arène Ursa', 'Champ Bourdonne'],
+      details:
+        'Champ Bourdonne · En vol : Arène Ursa, Marais Bouchebée · Apparitions massives : Marais Bouchebée · Mégapparitions',
+      places: ['Arène Ursa', 'Champ Bourdonne', 'Marais Bouchebée'],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        "Hauts de l'Humilité (le jour), Hauts de l'Humilité (apparitions massives) · Mégapparitions",
+        "En vol : Hauts de l'Humilité (le jour) · Apparitions massives : Hauts de l'Humilité · Mégapparitions",
       places: ["Hauts de l'Humilité"],
     },
   ],
   yanmega: [
     {
       region: 'Marais Carmin',
-      details: 'Marais Bouchebée (apparitions massives), Champ Bourdonne · Mégapparitions',
+      details: 'Apparitions massives : Marais Bouchebée · Mégapparitions',
       places: ['Marais Bouchebée', 'Champ Bourdonne'],
       alphas: ['Champ Bourdonne'],
     },
     {
       region: 'Contrefort Couronné',
-      details: "Hauts de l'Humilité (aussi en apparitions massives, le jour) · Mégapparitions",
+      details:
+        "En vol : Hauts de l'Humilité (le jour) · Apparitions massives : Hauts de l'Humilité · Mégapparitions",
       places: ["Hauts de l'Humilité"],
     },
   ],
@@ -2868,48 +3060,52 @@ export const HISUI_LOCATIONS: Record<string, LocationEntry[]> = {
     {
       region: 'Terres Immaculées',
       details:
-        'Glacier Séracrawl (alentours, apparitions massives), Terrasse du Glacier (alentours), Souterrain de Givre, Lac Savoir (un seul, pendant la mission 16) · Mégapparitions',
-      places: ['Glacier Séracrawl', 'Terrasse du Glacier', 'Souterrain de Givre', 'Lac Savoir'],
-      alphas: ['Lac Savoir (niv. 58)'],
+        'Souterrain de Givre (rare) · Alentours : Glacier Séracrawl (apparitions massives), Terrasse du Glacier · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Souterrain de Givre', 'Terrasse du Glacier', 'Lac Savoir'],
+      alphas: ['Lac Savoir (niv. 58) (non confirmé)'],
     },
   ],
   zorua: [
     {
       region: 'Terres Immaculées',
       details:
-        'Glacier Séracrawl (alentours, apparitions massives), Terrasse du Glacier (alentours), Souterrain de Givre · Mégapparitions',
-      places: ['Glacier Séracrawl', 'Terrasse du Glacier', 'Souterrain de Givre'],
+        'Souterrain de Givre · Alentours : Glacier Séracrawl (apparitions massives), Terrasse du Glacier · Mégapparitions',
+      places: ['Glacier Séracrawl', 'Souterrain de Givre', 'Terrasse du Glacier'],
     },
   ],
   zubat: [
     {
       region: 'Plaines Obsidiennes',
       details:
-        "La nuit : Pont Rocheux, Sentier Cer-Mont, Plateau Cer-Mont, Rive Filevent, Cellier Champêtre, Digue de l'Estuaire, Forêt Lointaine, Tunnel de Fer, Chute d'Obsidienne (alentours) · Mégapparitions",
+        "Cellier Champêtre (la nuit), Digue de l'Estuaire (la nuit), Forêt Lointaine (la nuit), Plateau Cer-Mont (la nuit), Pont Rocheux (la nuit), Rive Filevent (la nuit), Sentier Cer-Mont (la nuit), Tunnel de Fer (la nuit) · En vol : Cellier Champêtre (la nuit), Digue de l'Estuaire (la nuit), Plateau Cer-Mont (la nuit), Rive Filevent (la nuit) · Alentours : Chute d'Obsidienne (la nuit) · Mégapparitions",
       places: [
-        'Pont Rocheux',
-        'Sentier Cer-Mont',
-        'Plateau Cer-Mont',
-        'Rive Filevent',
         'Cellier Champêtre',
+        "Chute d'Obsidienne",
         "Digue de l'Estuaire",
         'Forêt Lointaine',
+        'Plateau Cer-Mont',
+        'Pont Rocheux',
+        'Rive Filevent',
+        'Sentier Cer-Mont',
         'Tunnel de Fer',
-        "Chute d'Obsidienne",
       ],
     },
     {
       region: 'Marais Carmin',
       details:
-        'La nuit : Col Mer-de-Nuages, Hameau Diamant (alentours), Lisière du Hameau, Pente des Gringoles',
+        'Col Mer-de-Nuages (la nuit), Lisière du Hameau (la nuit), Pente des Gringoles (la nuit) · Alentours : Hameau Diamant (la nuit)',
       places: ['Col Mer-de-Nuages', 'Hameau Diamant', 'Lisière du Hameau', 'Pente des Gringoles'],
     },
     {
       region: 'Contrefort Couronné',
       details:
-        "Hauts de l'Humilité (la nuit), Forêt des Égarés (la nuit), Grotte des Égarés, Ancienne Carrière (alentours, la nuit)",
-      places: ["Hauts de l'Humilité", 'Forêt des Égarés', 'Grotte des Égarés', 'Ancienne Carrière'],
+        "Forêt des Égarés (la nuit), Hauts de l'Humilité (la nuit) · En vol : Grotte des Égarés, Hauts de l'Humilité (la nuit) · Apparitions massives : Hauts de l'Humilité · Alentours : Ancienne Carrière (la nuit)",
+      places: ['Ancienne Carrière', 'Forêt des Égarés', 'Grotte des Égarés', "Hauts de l'Humilité"],
     },
-    { region: 'Terres Immaculées', details: 'Temple de Frimapic', places: ['Temple de Frimapic'] },
+    {
+      region: 'Terres Immaculées',
+      details: 'En vol : Temple de Frimapic',
+      places: ['Temple de Frimapic'],
+    },
   ],
 }
