@@ -79,7 +79,7 @@ const accent = computed(() => {
 // cx/cy/zoom servent au gros plan (clic) : centre du recadrage (% de l'image,
 // x et y sur 0-100 cette fois, indépendant du viewBox) et facteur de zoom,
 // calculés à partir du rectangle englobant de chaque polygone.
-const MAP_SRC = '/hisui-maps/hisui-map.jpg'
+const MAP_SRC = `${import.meta.env.BASE_URL}hisui-maps/hisui-map.jpg`
 const MAP_HEIGHT = 55.565
 
 const HISUI_ZONES = [

@@ -16,6 +16,10 @@ export type SyncStatus = 'off' | 'syncing' | 'ok' | 'offline' | 'error'
 
 const PUSH_DELAY_MS = 1500
 
+// Adresse de l'appli pour les liens des e-mails (confirmation, mot de passe
+// oublié) : sous /hisui/, pas à la racine du site.
+const APP_URL = window.location.origin + import.meta.env.BASE_URL
+
 export const useSyncStore = defineStore('sync', () => {
   const progress = useProgressStore()
 
@@ -94,7 +98,7 @@ export const useSyncStore = defineStore('sync', () => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: APP_URL },
     })
     if (error) throw error
     return !data.session
@@ -102,7 +106,7 @@ export const useSyncStore = defineStore('sync', () => {
 
   async function requestPasswordReset(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: APP_URL,
     })
     if (error) throw error
   }

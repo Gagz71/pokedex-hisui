@@ -3,6 +3,9 @@ defineProps<{
   isOpen: boolean
 }>()
 
+// chemin relatif à la base de l'appli (/hisui/)
+const POKEBALL_SRC = `${import.meta.env.BASE_URL}Pokeball1.png`
+
 const emit = defineEmits<{
   toggle: []
 }>()
@@ -16,7 +19,7 @@ const emit = defineEmits<{
     </div>
     <div class="hero">
       <div class="pokeball-ring">
-        <img class="pokeball" src="/Pokeball1.png" alt="Poké Ball" />
+        <img class="pokeball" :src="POKEBALL_SRC" alt="Poké Ball" />
       </div>
       <h1 class="title">Pokédex Hisui</h1>
       <div class="trim"></div>

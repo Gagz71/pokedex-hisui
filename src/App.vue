@@ -978,6 +978,10 @@ function goBack() {
 </script>
 
 <template>
+  <!-- Retour au portail « Pokédex MDS » (racine du site), qui regroupe les modules -->
+  <nav class="portal-nav">
+    <a class="portal-link" href="/">← Tous les Pokédex</a>
+  </nav>
   <div class="scene">
     <div class="book" :class="{ open: isOpen, 'has-pokemon': !!selectedName }">
       <div class="page page-left">
@@ -1262,6 +1266,22 @@ function goBack() {
 </template>
 
 <style scoped>
+.portal-nav {
+  width: 100%;
+  max-width: calc(var(--page-w) * 2);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.portal-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.portal-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
 .scene {
   display: flex;
   justify-content: center;

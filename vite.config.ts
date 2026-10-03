@@ -9,6 +9,9 @@ const DAY = 24 * 60 * 60
 
 // https://vite.dev/config/
 export default defineConfig({
+  // L'appli vit sous /hisui/ : c'est un module du portail « Pokédex MDS »
+  // (pokedex-mds.vercel.app), qui accueillera d'autres Pokédex (/kanto/...).
+  base: '/hisui/',
   plugins: [
     vue(),
     vueDevTools(),
@@ -23,7 +26,8 @@ export default defineConfig({
         short_name: 'Pokédex',
         description: 'Pokédex pour Légendes Pokémon : Arceus',
         lang: 'fr',
-        start_url: '/',
+        start_url: '/hisui/',
+        scope: '/hisui/',
         display: 'standalone',
         background_color: '#c1272d',
         theme_color: '#c1272d',
