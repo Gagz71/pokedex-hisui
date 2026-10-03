@@ -184,6 +184,8 @@ const LOCATION_GROUPS = REGION_ORDER.map((region) => ({
 }))
 const placeFilter = ref<{ region: string; place?: string } | null>(null)
 const isPlaceMenuOpen = ref(false)
+// zone dont les sous-zones sont dépliées dans le menu Lieu
+const expandedRegion = ref<string | null>(null)
 function setPlaceFilter(value: { region: string; place?: string } | null) {
   placeFilter.value = value
   isPlaceMenuOpen.value = false
@@ -873,6 +875,43 @@ function handleTypeFilter(slug: string) {
   selectedName.value = null
 }
 
+// --- Menus de la barre d'outils : un seul ouvert à la fois
+const MENUS = {
+  type: isTypeMenuOpen,
+  status: isStatusMenuOpen,
+  place: isPlaceMenuOpen,
+  item: isItemMenuOpen,
+  sort: isSortMenuOpen,
+}
+function closeMenus() {
+  Object.values(MENUS).forEach((menu) => (menu.value = false))
+}
+function toggleMenu(name: keyof typeof MENUS) {
+  const open = !MENUS[name].value
+  closeMenus()
+  MENUS[name].value = open
+  // menu Lieu : la zone du filtre en cours est déjà dépliée
+  if (name === 'place' && open)
+    expandedRegion.value = placeFilter.value?.place ? placeFilter.value.region : null
+}
+// Un clic en dehors de la barre d'outils ferme le menu ouvert.
+function onDocumentClick(e: MouseEvent) {
+  if (!(e.target as Element | null)?.closest('.index-toolbar')) closeMenus()
+}
+onMounted(() => document.addEventListener('click', onDocumentClick))
+onUnmounted(() => document.removeEventListener('click', onDocumentClick))
+
+const hasActiveFilters = computed(
+  () =>
+    !!(
+      searchQuery.value ||
+      typeFilter.value ||
+      statusFilter.value ||
+      placeFilter.value ||
+      itemFilter.value
+    ),
+)
+
 // Tous les filtres et la recherche à zéro, menus fermés.
 function resetFilters() {
   searchQuery.value = ''
@@ -880,14 +919,13 @@ function resetFilters() {
   statusFilter.value = null
   placeFilter.value = null
   itemFilter.value = null
-  isTypeMenuOpen.value = isStatusMenuOpen.value = isPlaceMenuOpen.value = false
-  isItemMenuOpen.value = isSortMenuOpen.value = false
+  closeMenus()
 }
 
-// Retour à l'index : l'index complet, sans le filtre qui a mené à la fiche.
+// Retour à l'index : filtres et recherche restent en place, on retrouve la
+// liste telle qu'on l'avait laissée (« ↺ Réinitialiser » pour tout effacer).
 function backToIndex() {
   selectedName.value = null
-  resetFilters()
 }
 
 // Fermer le livre remet tout à zéro : à la réouverture, on retombe sur
@@ -959,7 +997,7 @@ function goBack() {
           />
 
           <div class="type-menu">
-            <button class="type-toggle" @click="isTypeMenuOpen = !isTypeMenuOpen">
+            <button class="type-toggle" @click="toggleMenu('type')">
               <span
                 v-if="typeFilter"
                 class="type-toggle-dot"
@@ -983,7 +1021,7 @@ function goBack() {
           </div>
 
           <div class="sort-menu">
-            <button class="sort-toggle" @click="isStatusMenuOpen = !isStatusMenuOpen">
+            <button class="sort-toggle" @click="toggleMenu('status')">
               {{ STATUS_FILTERS.find((f) => f.value === statusFilter)?.label ?? 'Statut' }}
               <span class="arrow" :class="{ open: isStatusMenuOpen }">▾</span>
             </button>
@@ -1006,7 +1044,7 @@ function goBack() {
           </div>
 
           <div class="sort-menu">
-            <button class="sort-toggle" @click="isPlaceMenuOpen = !isPlaceMenuOpen">
+            <button class="sort-toggle" @click="toggleMenu('place')">
               {{ placeFilter ? (placeFilter.place ?? placeFilter.region) : 'Lieu' }}
               <span class="arrow" :class="{ open: isPlaceMenuOpen }">▾</span>
             </button>
@@ -1015,30 +1053,43 @@ function goBack() {
                 Tous les lieux
               </li>
               <template v-for="group in LOCATION_GROUPS" :key="group.region">
-                <li class="menu-group">{{ group.region }}</li>
+                <!-- Le nom de la zone filtre toute la zone ; « Dérouler » montre ses sous-zones -->
                 <li
+                  class="region-row"
                   @click="setPlaceFilter({ region: group.region })"
                   :class="{ active: placeFilter?.region === group.region && !placeFilter?.place }"
                 >
-                  Toute la zone
+                  <span>{{ group.region }}</span>
+                  <button
+                    v-if="group.places.length"
+                    class="region-expand"
+                    :aria-expanded="expandedRegion === group.region"
+                    @click.stop="
+                      expandedRegion = expandedRegion === group.region ? null : group.region
+                    "
+                  >
+                    {{ expandedRegion === group.region ? 'Replier ▴' : 'Dérouler ▾' }}
+                  </button>
                 </li>
-                <li
-                  v-for="place in group.places"
-                  :key="place"
-                  class="place-option"
-                  @click="setPlaceFilter({ region: group.region, place })"
-                  :class="{
-                    active: placeFilter?.place === place && placeFilter?.region === group.region,
-                  }"
-                >
-                  {{ place }}
-                </li>
+                <template v-if="expandedRegion === group.region">
+                  <li
+                    v-for="place in group.places"
+                    :key="place"
+                    class="place-option"
+                    @click="setPlaceFilter({ region: group.region, place })"
+                    :class="{
+                      active: placeFilter?.place === place && placeFilter?.region === group.region,
+                    }"
+                  >
+                    {{ place }}
+                  </li>
+                </template>
               </template>
             </ul>
           </div>
 
           <div class="sort-menu">
-            <button class="sort-toggle" @click="isItemMenuOpen = !isItemMenuOpen">
+            <button class="sort-toggle" @click="toggleMenu('item')">
               {{ itemFilter ? EVOLUTION_ITEMS[itemFilter]?.name : 'Objet' }}
               <span class="arrow" :class="{ open: isItemMenuOpen }">▾</span>
             </button>
@@ -1063,7 +1114,7 @@ function goBack() {
           </div>
 
           <div class="sort-menu">
-            <button class="sort-toggle" @click="isSortMenuOpen = !isSortMenuOpen">
+            <button class="sort-toggle" @click="toggleMenu('sort')">
               Tri <span class="arrow" :class="{ open: isSortMenuOpen }">▾</span>
             </button>
             <ul class="sort-options" v-if="isSortMenuOpen">
@@ -1076,6 +1127,15 @@ function goBack() {
               <li @click="setSort('power')">Total de mes stats</li>
             </ul>
           </div>
+
+          <button
+            v-if="hasActiveFilters"
+            class="reset-filters"
+            title="Réinitialiser tous les filtres et la recherche"
+            @click="resetFilters"
+          >
+            ↺ Réinitialiser
+          </button>
         </div>
 
         <template v-if="!selectedName">
@@ -1352,6 +1412,47 @@ function goBack() {
 .page-nav-label small {
   font-weight: 600;
   opacity: 0.7;
+}
+.region-row {
+  justify-content: space-between;
+  font-weight: 600;
+}
+.region-expand {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.region-expand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sort-options li.active .region-expand {
+  background: rgba(255, 255, 255, 0.9);
+}
+.reset-filters {
+  align-self: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--border);
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.reset-filters:hover {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .place-option {
   padding-left: 22px !important;
