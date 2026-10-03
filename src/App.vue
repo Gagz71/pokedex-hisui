@@ -11,6 +11,7 @@ import SyncPanel from './components/SyncPanel.vue'
 import ItemPanel from './components/ItemPanel.vue'
 import { EVOLUTION_ITEMS } from './data/evolutionItems'
 import { NO_EVOLUTION } from './data/noEvolution'
+import { EVOLUTION_METHODS } from './data/evolutionMethods'
 import { useSyncStore } from './stores/sync'
 import { useProgressStore, alphaKey, otherAlphaKey } from './stores/progress'
 import { HISUI_LOCATIONS, type LocationEntry } from './data/hisuiLocations'
@@ -410,6 +411,7 @@ interface EvoLink {
 interface EvolutionInfo extends EvoLink {
   condition: string
   itemSlug?: string // objet d'évolution (lien vers le filtre Objet)
+  howTo?: string // mode d'emploi détaillé (évolutions particulières)
 }
 // Un stade de la lignée : plusieurs Pokémon quand la chaîne se ramifie
 // (Évoli, Farfuret...). condition = comment on obtient ce Pokémon depuis le
@@ -427,6 +429,7 @@ interface PokemonData {
   previousEvolution: EvoLink | null
   evolvedFromCondition: string
   evolvedFromItem?: string
+  evolvedFromHowTo?: string
   evolutionLine: EvolutionStage[]
   apiName: string
   hisuiNumber: number | null
@@ -532,6 +535,8 @@ function getDefaultVarietyUrl(speciesData: any): string {
     hisuiVariety ?? speciesData.varieties.find((v: any) => v.is_default) ?? speciesData.varieties[0]
   return variety.pokemon.url
 }
+
+const FALSE_EVOLUTIONS = new Set(['phione>manaphy'])
 
 // Objet d'évolution de Légendes Arceus entre deux Pokémon, s'il y en a un.
 function findItemUse(from: string | undefined, to: string) {
@@ -743,6 +748,15 @@ async function fetchPokemon(name: string) {
     // Chaîne d'évolution
     const evoChainRes = await fetch(speciesData.evolution_chain.url)
     const evoChainData = await evoChainRes.json()
+    // PokeAPI relie Phione à Manaphy (Manaphy pond des œufs de Phione), mais
+    // aucun des deux n'évolue : on coupe ce faux lien.
+    const prune = (node: any) => {
+      node.evolves_to = node.evolves_to.filter(
+        (c: any) => !FALSE_EVOLUTIONS.has(`${node.species.name}>${c.species.name}`),
+      )
+      node.evolves_to.forEach(prune)
+    }
+    prune(evoChainData.chain)
     const currentNode = findChainNode(evoChainData.chain, data.species.name)
     const nextNodes = currentNode?.evolves_to ?? []
 
@@ -767,17 +781,24 @@ async function fetchPokemon(name: string) {
         const nodePokemon = await fetch(getDefaultVarietyUrl(nodeSpecies)).then((r) => r.json())
         // Évolution par objet : on suit les règles de Légendes Arceus (voir
         // evolutionItems.ts) plutôt que celles des autres jeux.
-        const itemUse = findItemUse(parentOf.get(node.species.name), node.species.name)
+        // Sinon, la table des évolutions de Légendes Arceus (evolutionMethods.ts),
+        // et seulement en dernier recours la traduction des données PokeAPI.
+        const parent = parentOf.get(node.species.name)
+        const itemUse = findItemUse(parent, node.species.name)
+        const method = parent ? EVOLUTION_METHODS[`${parent}>${node.species.name}`] : undefined
         resolved.set(node.species.name, {
           apiName: node.species.name,
           name: getFrenchName(nodeSpecies.names),
           sprite: nodePokemon.sprites.other['official-artwork'].front_default,
           condition: itemUse
             ? `Utiliser l'objet : ${itemUse.name}${itemUse.note ? ` (${itemUse.note})` : ''}`
-            : node.evolution_details.length
-              ? await describeNodeCondition(node)
-              : '',
+            : method
+              ? method.condition
+              : node.evolution_details.length
+                ? await describeNodeCondition(node)
+                : '',
           itemSlug: itemUse?.slug,
+          howTo: itemUse ? undefined : method?.howTo,
         })
       }),
     )
@@ -801,6 +822,7 @@ async function fetchPokemon(name: string) {
       : null
     const evolvedFromCondition = resolved.get(data.species.name)?.condition ?? ''
     const evolvedFromItem = resolved.get(data.species.name)?.itemSlug
+    const evolvedFromHowTo = resolved.get(data.species.name)?.howTo
 
     pokemon.value = {
       name: frenchName,
@@ -816,6 +838,7 @@ async function fetchPokemon(name: string) {
       previousEvolution: previousEvolution,
       evolvedFromCondition,
       evolvedFromItem,
+      evolvedFromHowTo,
       evolutionLine,
       apiName: data.species.name,
       hisuiNumber: entries.value.find((e) => e.apiName === name)?.entryNumber ?? null,

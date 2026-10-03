@@ -19,10 +19,12 @@ const props = defineProps<{
       sprite: string
       condition: string
       itemSlug?: string
+      howTo?: string
     }[]
     previousEvolution: { apiName: string; name: string; sprite: string } | null
     evolvedFromCondition: string
     evolvedFromItem?: string
+    evolvedFromHowTo?: string
     evolutionLine: { apiName: string; name: string; sprite: string; condition: string }[][]
     apiName: string
     hisuiNumber: number | null
@@ -580,6 +582,10 @@ const hoveredZoneName = ref<string | null>(null)
                     </template>
                     <template v-else>{{ evo.condition }}</template>
                   </span>
+                  <details v-if="evo.howTo" class="evo-howto" @click.stop>
+                    <summary>Comment faire ?</summary>
+                    <p>{{ evo.howTo }}</p>
+                  </details>
                 </div>
               </div>
             </div>
@@ -607,6 +613,10 @@ const hoveredZoneName = ref<string | null>(null)
                     >{{ conditionRest(pokemon.evolvedFromCondition, pokemon.evolvedFromItem) }}
                   </span>
                   <span v-else>{{ pokemon.evolvedFromCondition }}</span>
+                  <details v-if="pokemon.evolvedFromHowTo" class="evo-howto">
+                    <summary>Comment faire ?</summary>
+                    <p>{{ pokemon.evolvedFromHowTo }}</p>
+                  </details>
                 </div>
                 <div class="evo-final-poke current">
                   <img :src="pokemon.sprite" :alt="pokemon.name" />
@@ -1381,6 +1391,25 @@ const hoveredZoneName = ref<string | null>(null)
   font-weight: 800;
   text-transform: capitalize;
   color: #1a1a1a;
+}
+.evo-howto {
+  margin-top: 4px;
+  font-size: 12.5px;
+  text-align: left;
+  color: #3a4a3a;
+}
+.evo-howto summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #2f7a4f;
+  list-style-position: inside;
+}
+.evo-howto p {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #eef8f1;
+  line-height: 1.45;
 }
 .item-link {
   font: inherit;

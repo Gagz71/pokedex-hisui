@@ -2,7 +2,8 @@
 // Calculé à partir des chaînes d'évolution de PokeAPI, adapté aux règles du
 // jeu : pas d'échange (le Fil de Liaison le remplace), les objets « à tenir »
 // des autres jeux s'utilisent depuis le sac, et Tarinor évolue avec une
-// Pierre Foudre (confirmé sur Bulbapedia). Noms et descriptions officiels en
+// Pierre Foudre, ou en montant d'un niveau dans le Contrefort Couronné
+// (confirmé sur Bulbapedia et Serebii). Noms et descriptions officiels en
 // français viennent de PokeAPI, sauf pour Croc Rasoir, Griffe Rasoir et Peau
 // Métal (le texte officiel parle d'objet à tenir) et pour les objets propres
 // à Hisui (absents de PokeAPI) : descriptions rédigées pour l'appli.
@@ -154,7 +155,12 @@ export const EVOLUTION_ITEMS: Record<string, EvolutionItem> = {
     uses: [
       { from: 'eevee', to: 'jolteon', toName: 'Voltali' },
       { from: 'magneton', to: 'magnezone', toName: 'Magnézone' },
-      { from: 'nosepass', to: 'probopass', toName: 'Tarinorme' },
+      {
+        from: 'nosepass',
+        to: 'probopass',
+        toName: 'Tarinorme',
+        note: "ou monter d'un niveau dans le Contrefort Couronné",
+      },
       { from: 'pikachu', to: 'raichu', toName: 'Raichu' },
     ],
   },
