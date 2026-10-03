@@ -4,5 +4,8 @@
     { "source": "/", "destination": "/hisui/", "permanent": false },
     { "source": "/hisui", "destination": "/hisui/", "permanent": false }
   ],
-  "rewrites": [{ "source": "/hisui/:path*", "destination": "/:path*" }]
+  "rewrites": [
+    { "source": "/hisui/", "destination": "/index.html" },
+    { "source": "/hisui/:path+", "destination": "/:path+" }
+  ]
 }
