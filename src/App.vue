@@ -994,6 +994,8 @@ function goBack() {
             type="text"
             placeholder="Rechercher par nom ou n°..."
             class="search-input"
+            @focus="closeMenus"
+            @click="closeMenus"
           />
 
           <div class="type-menu">
@@ -1576,10 +1578,6 @@ function goBack() {
   color: #fff;
   border-color: var(--accent);
 }
-.sort-menu,
-.type-menu {
-  position: relative;
-}
 .sort-toggle,
 .type-toggle {
   border: 1px solid var(--border);
@@ -1606,6 +1604,7 @@ function goBack() {
 .type-options {
   position: absolute;
   top: 100%;
+  left: 0;
   right: 0;
   margin-top: 4px;
   list-style: none;
@@ -1615,8 +1614,8 @@ function goBack() {
   border-radius: 6px;
   box-shadow: var(--shadow);
   z-index: 4;
-  min-width: 180px;
-  max-height: 320px;
+  /* jamais plus haut que la moitié de l'écran : il ne déborde pas en bas */
+  max-height: min(420px, 50dvh);
   overflow-y: auto;
 }
 .sort-options li,
@@ -1670,11 +1669,19 @@ function goBack() {
   flex-shrink: 0;
 }
 
+/* Les menus (Type, Statut, Lieu, Objet, Tri) s'ouvrent sur toute la largeur
+   de la barre d'outils, sous elle : ancrés sur leur bouton, ceux de la 2e
+   ligne sortaient du cadre de la page. */
 .index-toolbar {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+}
+.sort-menu,
+.type-menu {
+  position: static;
 }
 .search-input {
   flex: 1 1 140px;
@@ -1733,23 +1740,6 @@ function goBack() {
   }
   .spine {
     display: none;
-  }
-
-  /* Menus Type / Statut / Tri : ancrés sur toute la largeur de la barre
-     d'outils (sinon ceux de la 2e ligne sortent de l'écran à gauche). */
-  .index-toolbar {
-    position: relative;
-  }
-  .sort-menu,
-  .type-menu {
-    position: static;
-  }
-  .sort-options,
-  .type-options {
-    left: 0;
-    right: 0;
-    min-width: 0;
-    max-height: 60vh;
   }
 
   /* 16 px minimum : en dessous, l'iPhone zoome sur le champ dès qu'on le
